@@ -122,11 +122,29 @@ app.get("/", (c) => {
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             background: #c0c0c0;
-            padding: 20px;
+            padding: 15px;
             z-index: 1000;
             overflow-y: auto;
+            box-sizing: border-box;
+        }
+        .info-screen h1 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .info-screen h2 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            margin-top: 15px;
+        }
+        .info-screen p {
+            font-size: 12px;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+            line-height: 1.3;
+            max-width: 100%;
         }
         .close-button {
             float: right;
@@ -1309,11 +1327,29 @@ app.get("/listing/:id", async (c) => {
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh;
             background: #c0c0c0;
-            padding: 20px;
+            padding: 15px;
             z-index: 1000;
             overflow-y: auto;
+            box-sizing: border-box;
+        }
+        .info-screen h1 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .info-screen h2 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            margin-top: 15px;
+        }
+        .info-screen p {
+            font-size: 12px;
+            margin-bottom: 8px;
+            word-wrap: break-word;
+            line-height: 1.3;
+            max-width: 100%;
         }
         .close-button {
             float: right;
