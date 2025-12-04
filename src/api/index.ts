@@ -101,6 +101,59 @@ app.get("/", (c) => {
             margin: 20px;
             line-height: 1.4;
         }
+        .info-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #000;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            line-height: 26px;
+        }
+        .info-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #c0c0c0;
+            padding: 20px;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .close-button {
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 5px 10px;
+        }
+        .success-screen {
+            display: none;
+            text-align: center;
+        }
+        .big-share-button {
+            padding: 20px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+        .small-create-button {
+            padding: 8px 16px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
         h1 {
             font-size: 24px;
             text-align: center;
@@ -171,6 +224,49 @@ app.get("/", (c) => {
     </style>
 </head>
 <body>
+    <!-- Info Button -->
+    <div class="info-button" id="info-button">i</div>
+    
+    <!-- Info Screen -->
+    <div class="info-screen" id="info-screen">
+        <button class="close-button" id="close-info">×</button>
+        <h1>How OverTheCounter Works</h1>
+        
+        <h2>What is this?</h2>
+        <p>OverTheCounter is a simple marketplace where you can sell your tokens for USDC on Base blockchain.</p>
+        
+        <h2>How to sell tokens:</h2>
+        <p><b>1.</b> Paste your token's contract address</p>
+        <p><b>2.</b> Choose how many tokens to sell (using the slider)</p>
+        <p><b>3.</b> Set your USDC price</p>
+        <p><b>4.</b> Create the listing</p>
+        
+        <h2>How it works:</h2>
+        <p>• Your tokens stay in YOUR wallet until someone buys them</p>
+        <p>• When someone buys, they get your tokens and you get USDC</p>
+        <p>• There's a 0.88% fee taken from the sale</p>
+        <p>• Listings expire after 24 hours</p>
+        
+        <h2>Safe?</h2>
+        <p>Yes! The smart contract is public and can't be changed. No one can steal your tokens.</p>
+        
+        <div class="contract-link">
+            <a href="https://basescan.org/address/0xa16e313bb5b6f03af9894b9991132f729b9069bf#code" target="_blank">read smart contract</a>
+        </div>
+    </div>
+    
+    <!-- Success Screen -->
+    <div class="success-screen" id="success-screen">
+        <h1>Listing Created Successfully!</h1>
+        <p>Your listing ID: <span id="success-listing-id"></span></p>
+        <br>
+        <button class="big-share-button" id="big-share-button">SHARE LISTING</button>
+        <br>
+        <button class="small-create-button" id="create-another-button">create another one</button>
+    </div>
+    
+    <!-- Main Form (hidden after success) -->
+    <div id="main-form">
     <h1>OverTheCounter</h1>
     <p>A simple token marketplace on Base. Sell your tokens for USDC.</p>
     
@@ -219,6 +315,10 @@ app.get("/", (c) => {
         <!-- Step 4: Price Input -->
         <div class="step" id="step4">
             <h2>Step 3: Set Price</h2>
+            <div class="balance-display">
+                <p><b>You are selling:</b> <span id="selling-amount">0</span> tokens</p>
+                <p><b>This is:</b> <span id="selling-percentage">0</span>% of your total balance</p>
+            </div>
             <p>USDC you want for them (total price):</p>
             <input type="number" id="usdcPrice" name="usdcPrice" placeholder="usdc you want for them" step="0.01" min="0" required>
             <br><br>
@@ -234,6 +334,7 @@ app.get("/", (c) => {
     <div class="contract-link">
         <a href="https://basescan.org/address/0xa16e313bb5b6f03af9894b9991132f729b9069bf#code" target="_blank">read smart contract</a>
     </div>
+    </div> <!-- Close main-form -->
 
     <script type="module">
         import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
@@ -928,11 +1029,16 @@ app.get("/", (c) => {
             }
             
             const rawAmount = (userBalance * BigInt(percentage)) / 100n;
+            const humanReadableAmount = formatTokenAmount(rawAmount, tokenDecimals);
             console.log('[OTC] Amount to sell:', { 
                 percentage, 
                 rawAmount: rawAmount.toString(),
-                humanReadable: formatTokenAmount(rawAmount, tokenDecimals)
+                humanReadable: humanReadableAmount
             });
+            
+            // Update Step 4 display with selling info
+            document.getElementById('selling-amount').textContent = humanReadableAmount;
+            document.getElementById('selling-percentage').textContent = percentage;
             
             showStep(4);
         });
@@ -983,17 +1089,11 @@ app.get("/", (c) => {
                 createdListingId = listingId;
                 console.log('[OTC] ✓ Listing created successfully, ID:', listingId);
                 
-                // Show success message
-                successMessage.textContent = \`Listing created successfully! ID: \${listingId}\`;
-                successMessage.style.display = 'block';
-                
-                // Show share section
-                document.getElementById('share-section').style.display = 'block';
-                
-                // Reset form
-                console.log('[OTC] Resetting form and returning to step 1');
-                e.target.reset();
-                showStep(1);
+                // Show success screen instead of form
+                console.log('[OTC] ✓ Showing success screen');
+                document.getElementById('main-form').style.display = 'none';
+                document.getElementById('success-screen').style.display = 'block';
+                document.getElementById('success-listing-id').textContent = listingId;
                 
             } catch (error) {
                 console.error('[OTC] ✗ Error creating listing:', error);
@@ -1039,6 +1139,57 @@ app.get("/", (c) => {
                 });
                 alert('Error sharing listing: ' + error.message);
             }
+        });
+        
+        // Info button handlers
+        document.getElementById('info-button').addEventListener('click', () => {
+            console.log('[OTC] Info button clicked');
+            document.getElementById('info-screen').style.display = 'block';
+        });
+        
+        document.getElementById('close-info').addEventListener('click', () => {
+            console.log('[OTC] Close info button clicked');
+            document.getElementById('info-screen').style.display = 'none';
+        });
+        
+        // Success screen handlers
+        document.getElementById('big-share-button').addEventListener('click', async () => {
+            console.log('[OTC] Big share button clicked, listing ID:', createdListingId);
+            if (!createdListingId) {
+                console.error('[OTC] ✗ No listing ID to share');
+                return;
+            }
+            
+            try {
+                const baseUrl = '${baseUrl}';
+                const shareUrl = \`\${baseUrl}/listing/\${createdListingId}\`;
+                console.log('[OTC] Sharing listing:', shareUrl);
+                
+                await sdk.actions.composeCast({
+                    text: \`I'm selling tokens for USDC on OverTheCounter! 🚀\`,
+                    embeds: [shareUrl]
+                });
+                console.log('[OTC] ✓ Cast composed successfully');
+            } catch (error) {
+                console.error('[OTC] ✗ Error sharing listing:', error);
+                alert('Error sharing listing: ' + error.message);
+            }
+        });
+        
+        document.getElementById('create-another-button').addEventListener('click', () => {
+            console.log('[OTC] Create another button clicked');
+            // Reset everything and show main form
+            document.getElementById('success-screen').style.display = 'none';
+            document.getElementById('main-form').style.display = 'block';
+            document.getElementById('create-listing-form').reset();
+            showStep(1);
+            
+            // Clear previous data
+            createdListingId = null;
+            userBalance = null;
+            tokenAddress = null;
+            tokenDecimals = 18;
+            userAccount = null;
         });
         
         // Initialize app
@@ -1137,9 +1288,76 @@ app.get("/listing/:id", async (c) => {
             margin-bottom: 15px;
             display: none;
         }
+        .info-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #000;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            line-height: 26px;
+        }
+        .info-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #c0c0c0;
+            padding: 20px;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .close-button {
+            float: right;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 5px 10px;
+        }
     </style>
 </head>
 <body>
+    <!-- Info Button -->
+    <div class="info-button" id="info-button">i</div>
+    
+    <!-- Info Screen -->
+    <div class="info-screen" id="info-screen">
+        <button class="close-button" id="close-info">×</button>
+        <h1>How OverTheCounter Works</h1>
+        
+        <h2>What is this?</h2>
+        <p>OverTheCounter is a simple marketplace where you can sell your tokens for USDC on Base blockchain.</p>
+        
+        <h2>How to sell tokens:</h2>
+        <p><b>1.</b> Paste your token's contract address</p>
+        <p><b>2.</b> Choose how many tokens to sell (using the slider)</p>
+        <p><b>3.</b> Set your USDC price</p>
+        <p><b>4.</b> Create the listing</p>
+        
+        <h2>How it works:</h2>
+        <p>• Your tokens stay in YOUR wallet until someone buys them</p>
+        <p>• When someone buys, they get your tokens and you get USDC</p>
+        <p>• There's a 0.88% fee taken from the sale</p>
+        <p>• Listings expire after 24 hours</p>
+        
+        <h2>Safe?</h2>
+        <p>Yes! The smart contract is public and can't be changed. No one can steal your tokens.</p>
+        
+        <div class="contract-link">
+            <a href="https://basescan.org/address/0xa16e313bb5b6f03af9894b9991132f729b9069bf#code" target="_blank">read smart contract</a>
+        </div>
+    </div>
+
     <button onclick="window.location.href='/'">← Back to Create</button>
     
     <h1>Token Listing</h1>
@@ -1518,6 +1736,17 @@ app.get("/listing/:id", async (c) => {
                 errorMessage.textContent = \`Error buying USDC: \${error.message}\`;
                 errorMessage.style.display = 'block';
             }
+        });
+        
+        // Info button handlers
+        document.getElementById('info-button').addEventListener('click', () => {
+            console.log('[OTC] Info button clicked on listing page');
+            document.getElementById('info-screen').style.display = 'block';
+        });
+        
+        document.getElementById('close-info').addEventListener('click', () => {
+            console.log('[OTC] Close info button clicked on listing page');
+            document.getElementById('info-screen').style.display = 'none';
         });
         
         // Initialize app
