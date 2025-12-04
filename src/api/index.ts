@@ -92,288 +92,147 @@ app.get("/", (c) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OverTheCounter - Create Listing</title>
     <meta name="fc:miniapp" content='{"version":"1","imageUrl":"${baseUrl}/static/image.png","button":{"title":"Trade Tokens","action":{"type":"launch_miniapp","name":"OverTheCounter","url":"${baseUrl}","splashImageUrl":"${baseUrl}/static/icon.svg","splashBackgroundColor":"#1a1a1a"}}}' />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap">
     <script type="module" src="https://esm.sh/@farcaster/miniapp-sdk"></script>
     <style>
-        * {
-            box-sizing: border-box;
-        }
         body {
-            font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #008080;
-            background-image: 
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
-                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
-            min-height: 100vh;
-        }
-        .container {
+            font-family: "Times New Roman", Times, serif;
             background: #c0c0c0;
-            border: 2px outset #c0c0c0;
-            padding: 8px;
-            box-shadow: 
-                inset -1px -1px 0px #000,
-                inset 1px 1px 0px #fff,
-                2px 2px 4px rgba(0,0,0,0.3);
-        }
-        .window-title {
-            background: linear-gradient(to right, #000080, #1084d0);
-            color: white;
-            padding: 4px 8px;
-            font-weight: bold;
-            font-size: 11px;
-            margin: -8px -8px 8px -8px;
-            border-bottom: 1px solid #000;
-            display: flex;
-            align-items: center;
-            height: 20px;
-        }
-        .window-content {
-            background: #c0c0c0;
-            padding: 16px;
+            color: #000000;
+            margin: 20px;
+            line-height: 1.4;
         }
         h1 {
-            color: #000;
-            margin: 0 0 8px 0;
-            font-size: 20px;
-            font-weight: bold;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
-        }
-        .subtitle {
-            color: #000;
-            margin-bottom: 16px;
-            font-size: 12px;
-        }
-        .form-group {
-            margin-bottom: 16px;
-        }
-        label {
-            display: block;
-            margin-bottom: 4px;
-            font-weight: bold;
-            color: #000;
-            font-size: 12px;
-        }
-        input {
-            width: 100%;
-            padding: 4px;
-            border: 2px inset #c0c0c0;
-            background: #fff;
-            font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
-            font-size: 12px;
-            box-sizing: border-box;
-        }
-        input:focus {
-            outline: 1px dotted #000;
-            outline-offset: -2px;
-        }
-        .button {
-            width: 100%;
-            padding: 8px 16px;
-            background: #c0c0c0;
-            color: #000;
-            border: 2px outset #c0c0c0;
-            font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
+            font-size: 24px;
             text-align: center;
-            box-shadow: 
-                inset -1px -1px 0px #000,
-                inset 1px 1px 0px #fff;
+            margin-bottom: 20px;
         }
-        .button:active {
-            border: 2px inset #c0c0c0;
-            box-shadow: 
-                inset 1px 1px 0px #000,
-                inset -1px -1px 0px #fff;
+        h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
         }
-        .button:hover:not(:disabled) {
-            background: #d4d0c8;
+        p {
+            margin-bottom: 15px;
         }
-        .button:disabled {
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 5px;
+            border: 2px inset;
+            background: white;
+            font-size: 14px;
+            font-family: "Times New Roman", Times, serif;
+        }
+        button {
+            padding: 8px 16px;
+            border: 2px outset;
             background: #c0c0c0;
-            color: #808080;
-            cursor: not-allowed;
-            border: 2px inset #c0c0c0;
-            box-shadow: 
-                inset 1px 1px 0px #808080,
-                inset -1px -1px 0px #fff;
+            font-size: 14px;
+            font-family: "Times New Roman", Times, serif;
+            cursor: pointer;
         }
-        .share-button {
-            margin-top: 12px;
+        button:active {
+            border: 2px inset;
         }
-        .success-message {
-            background: #c0c0c0;
-            color: #000;
-            padding: 12px;
-            border: 2px inset #c0c0c0;
-            margin-bottom: 16px;
-            display: none;
-            font-size: 12px;
-        }
-        .error-message {
-            background: #c0c0c0;
-            color: #000;
-            padding: 12px;
-            border: 2px inset #c0c0c0;
-            margin-bottom: 16px;
-            display: none;
-            font-size: 12px;
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
         }
         .step {
             display: none;
+            margin-bottom: 20px;
         }
         .step.active {
             display: block;
         }
         .balance-display {
-            background: #fff;
-            border: 2px inset #c0c0c0;
-            padding: 12px;
-            margin-bottom: 16px;
-            font-size: 12px;
+            border: 1px solid #000;
+            padding: 10px;
+            background: white;
+            margin-bottom: 15px;
         }
-        .balance-label {
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        .balance-value {
-            font-size: 14px;
-            word-break: break-all;
-        }
-        .slider-container {
-            margin-bottom: 16px;
-        }
-        .slider-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 12px;
-        }
-        input[type="range"] {
-            width: 100%;
-            height: 20px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: #c0c0c0;
-            border: 2px inset #c0c0c0;
-            outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #c0c0c0;
-            border: 2px outset #c0c0c0;
-            cursor: pointer;
-            box-shadow: 
-                inset -1px -1px 0px #000,
-                inset 1px 1px 0px #fff;
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #c0c0c0;
-            border: 2px outset #c0c0c0;
-            cursor: pointer;
-            box-shadow: 
-                inset -1px -1px 0px #000,
-                inset 1px 1px 0px #fff;
-        }
-        .loading {
+        .contract-link {
             text-align: center;
-            padding: 12px;
-            font-size: 12px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #000;
+        }
+        .contract-link a {
+            color: #0000ee;
+            text-decoration: underline;
+        }
+        .contract-link a:visited {
+            color: #551a8b;
+        }
+        .error-message, .success-message {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-bottom: 15px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="window-title">OverTheCounter</div>
-        <div class="window-content">
-            <h1>OverTheCounter</h1>
-            <p class="subtitle">Create a new token listing</p>
-            
-            <div id="success-message" class="success-message"></div>
-            <div id="error-message" class="error-message"></div>
-            
-            <form id="create-listing-form">
-                <!-- Step 1: Contract Address -->
-                <div class="step active" id="step1">
-                    <div class="form-group">
-                        <label for="token">Token Contract Address</label>
-                        <input type="text" id="token" name="token" placeholder="0x..." required>
-                    </div>
-                    <button type="button" class="button" id="next-step1">
-                        NEXT →
-                    </button>
-                </div>
-                
-                <!-- Step 2: Loading Balance -->
-                <div class="step" id="step2">
-                    <div class="loading">Loading your balance...</div>
-                </div>
-                
-                <!-- Step 2.5: No Balance - Buy Token -->
-                <div class="step" id="step2-no-balance">
-                    <div class="balance-display">
-                        <div class="balance-label">You don't have any of this token</div>
-                        <div style="margin-top: 16px; font-size: 12px;">Buy some tokens to create a listing!</div>
-                    </div>
-                    <button type="button" class="button" id="buy-token-button">
-                        BUY TOKEN
-                    </button>
-                    <button type="button" class="button" id="back-to-step1" style="margin-top: 12px;">
-                        ← Back
-                    </button>
-                </div>
-                
-                <!-- Step 3: Balance & Slider -->
-                <div class="step" id="step3">
-                    <div class="balance-display">
-                        <div class="balance-label">Your Balance:</div>
-                        <div class="balance-value" id="balance-display">0</div>
-                    </div>
-                    <div class="slider-container">
-                        <div class="slider-label">
-                            <span>Amount to Sell:</span>
-                            <span id="amount-display">0</span>
-                        </div>
-                        <input type="range" id="amount-slider" min="0" max="100" value="0" step="1">
-                        <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px;">
-                            <span>0%</span>
-                            <span>50%</span>
-                            <span>100%</span>
-                        </div>
-                    </div>
-                    <button type="button" class="button" id="next-step3">
-                        NEXT →
-                    </button>
-                </div>
-                
-                <!-- Step 4: Price Input -->
-                <div class="step" id="step4">
-                    <div class="form-group">
-                        <label for="usdcPrice">USDC Price (total)</label>
-                        <input type="number" id="usdcPrice" name="usdcPrice" placeholder="10" step="0.01" min="0" required>
-                        <small style="font-size: 10px; color: #666; display: block; margin-top: 4px;">Enter price in USDC (e.g., 10 for 10 USDC)</small>
-                    </div>
-                    <button type="submit" class="button" id="create-button">
-                        CREATE LISTING
-                    </button>
-                </div>
-            </form>
+    <h1>OverTheCounter</h1>
+    <p>A simple token marketplace on Base. Sell your tokens for USDC.</p>
+    
+    <div id="success-message" class="success-message"></div>
+    <div id="error-message" class="error-message"></div>
+    
+    <form id="create-listing-form">
+        <!-- Step 1: Contract Address -->
+        <div class="step active" id="step1">
+            <h2>Step 1: Enter Token Address</h2>
+            <p>Paste the contract address of the token you want to sell here:</p>
+            <input type="text" id="token" name="token" placeholder="paste the ca of the token you want to sell here" required>
+            <br><br>
+            <button type="button" id="next-step1">NEXT</button>
+        </div>
         
-        <div id="share-section" style="display: none;">
-            <button type="button" class="button share-button" id="share-button">
-                SHARE LISTING
-            </button>
+        <!-- Step 2: Loading Balance -->
+        <div class="step" id="step2">
+            <p>Loading your balance...</p>
         </div>
+        
+        <!-- Step 2.5: No Balance - Buy Token -->
+        <div class="step" id="step2-no-balance">
+            <h2>No Tokens Found</h2>
+            <div class="balance-display">
+                <p>You don't have any of this token.</p>
+                <p>Buy some tokens to create a listing!</p>
+            </div>
+            <button type="button" id="buy-token-button">BUY TOKEN</button>
+            <br><br>
+            <button type="button" id="back-to-step1">← Back</button>
         </div>
+        
+        <!-- Step 3: Balance & Slider -->
+        <div class="step" id="step3">
+            <h2>Step 2: Choose Amount</h2>
+            <div class="balance-display">
+                <p><b>Your Balance:</b> <span id="balance-display">0</span></p>
+            </div>
+            <p>Amount of tokens you want to sell: <b><span id="amount-display">0</span></b></p>
+            <input type="range" id="amount-slider" min="0" max="100" value="0" step="1">
+            <p>0% -------------------- 50% -------------------- 100%</p>
+            <button type="button" id="next-step3">NEXT</button>
+        </div>
+        
+        <!-- Step 4: Price Input -->
+        <div class="step" id="step4">
+            <h2>Step 3: Set Price</h2>
+            <p>USDC you want for them (total price):</p>
+            <input type="number" id="usdcPrice" name="usdcPrice" placeholder="usdc you want for them" step="0.01" min="0" required>
+            <br><br>
+            <button type="submit" id="create-button">CREATE LISTING</button>
+        </div>
+    </form>
+
+    <div id="share-section" style="display: none;">
+        <br>
+        <button type="button" id="share-button">SHARE LISTING</button>
+    </div>
+    
+    <div class="contract-link">
+        <a href="https://basescan.org/address/0xa16e313bb5b6f03af9894b9991132f729b9069bf#code" target="_blank">read smart contract</a>
     </div>
 
     <script type="module">
@@ -388,8 +247,11 @@ app.get("/", (c) => {
         let userAccount = null;
         
         // OverTheCounter contract details
-        const CONTRACT_ADDRESS = '${process.env.CONTRACT_ADDRESS || "0x..."}';
+        const CONTRACT_ADDRESS = '0xa16e313Bb5b6f03Af9894b9991132F729B9069Bf';
         console.log('[OTC] Contract address:', CONTRACT_ADDRESS);
+        
+        // Public RPC URL for Base mainnet
+        const RPC_URL = 'https://mainnet.base.org';
         
         // Initialize SDK when page loads
         async function initializeApp() {
@@ -442,8 +304,6 @@ app.get("/", (c) => {
         // Call ERC20 balanceOf via public RPC
         async function getTokenBalance(tokenAddress, userAddress) {
             console.log('[OTC] Fetching token balance...', { tokenAddress, userAddress });
-            
-            const RPC_URL = 'https://mainnet.base.org';
             // ERC20 balanceOf function selector: balanceOf(address)
             const ERC20_BALANCEOF = '0x70a08231';
             const addressPadded = userAddress.slice(2).padStart(64, '0');
@@ -486,7 +346,6 @@ app.get("/", (c) => {
         // Get token decimals via public RPC
         async function getTokenDecimals(tokenAddress) {
             console.log('[OTC] Fetching token decimals for:', tokenAddress);
-            const RPC_URL = 'https://mainnet.base.org';
             // ERC20 decimals() function selector
             const ERC20_DECIMALS = '0x313ce567';
             
@@ -584,7 +443,6 @@ app.get("/", (c) => {
         // Check token allowance for OverTheCounter contract
         async function checkAllowance(tokenAddress, userAddress) {
             console.log('[OTC] Checking allowance...', { tokenAddress, userAddress });
-            const RPC_URL = 'https://mainnet.base.org';
             // ERC20 allowance(owner, spender) function selector
             const ERC20_ALLOWANCE = '0xdd62ed3e';
             const ownerPadded = userAddress.slice(2).padStart(64, '0');
@@ -652,30 +510,53 @@ app.get("/", (c) => {
             });
             console.log('[OTC] ✓ Approval transaction sent, hash:', txHash);
             
-            // Wait for approval transaction receipt
+            // Wait for approval transaction receipt using public RPC
+            // (Farcaster Wallet doesn't support eth_getTransactionReceipt)
             let receipt = null;
             let attempts = 0;
-            while (!receipt && attempts < 30) {
+            const maxAttempts = 60; // Wait up to 60 seconds
+            
+            console.log('[OTC] Waiting for approval transaction confirmation...');
+            while (!receipt && attempts < maxAttempts) {
                 attempts++;
                 try {
-                    receipt = await provider.request({
-                        method: 'eth_getTransactionReceipt',
-                        params: [txHash]
+                    const response = await fetch(RPC_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            jsonrpc: '2.0',
+                            method: 'eth_getTransactionReceipt',
+                            params: [txHash],
+                            id: 1
+                        })
                     });
-                    if (!receipt) {
+                    
+                    const result = await response.json();
+                    if (result.result) {
+                        receipt = result.result;
+                        console.log('[OTC] ✓ Approval transaction confirmed');
+                    } else {
+                        // Transaction not yet mined, wait and retry
+                        if (attempts % 5 === 0) {
+                            console.log(\`[OTC] Still waiting for approval (attempt \${attempts}/\${maxAttempts})...\`);
+                        }
                         await new Promise(resolve => setTimeout(resolve, 1000));
                     }
                 } catch (error) {
+                    console.log('[OTC] Error checking receipt, retrying...', error);
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             }
             
             if (!receipt) {
-                throw new Error('Approval transaction timeout');
+                console.log('[OTC] ⚠ Approval transaction not confirmed yet, but proceeding anyway');
+                // Don't throw - the transaction was sent, it will confirm eventually
+                // We can proceed and the contract will check allowance when creating listing
+            } else {
+                console.log('[OTC] ✓ Approval confirmed with receipt');
             }
             
-            console.log('[OTC] ✓ Approval confirmed');
-            return receipt;
+            return receipt || { transactionHash: txHash };
         }
         
         // Create listing on smart contract
@@ -694,22 +575,91 @@ app.get("/", (c) => {
             console.log('[OTC] Using account for listing:', account);
             
             // Check if approval is needed
-            const currentAllowance = await checkAllowance(token, account);
+            let currentAllowance = await checkAllowance(token, account);
             const requiredAmount = BigInt(tokenAmount);
             
             if (currentAllowance < requiredAmount) {
                 console.log('[OTC] Insufficient allowance, requesting approval...');
                 console.log('[OTC] Current allowance:', currentAllowance.toString(), 'Required:', requiredAmount.toString());
                 await approveToken(token, tokenAmount);
-                console.log('[OTC] ✓ Approval completed, proceeding with createListing');
+                
+                // Wait a moment for state to update, then re-check allowance
+                console.log('[OTC] Waiting for allowance to update on-chain...');
+                await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+                
+                // Re-check allowance to verify it's updated
+                let retries = 0;
+                while (currentAllowance < requiredAmount && retries < 10) {
+                    retries++;
+                    currentAllowance = await checkAllowance(token, account);
+                    console.log('[OTC] Re-checking allowance (attempt ' + retries + '):', currentAllowance.toString());
+                    if (currentAllowance < requiredAmount) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                }
+                
+                if (currentAllowance < requiredAmount) {
+                    throw new Error('Allowance not updated after approval. Please try again.');
+                }
+                
+                console.log('[OTC] ✓ Approval confirmed, allowance:', currentAllowance.toString());
             } else {
-                console.log('[OTC] ✓ Sufficient allowance already exists');
+                console.log('[OTC] ✓ Sufficient allowance already exists:', currentAllowance.toString());
             }
+            
+            // Verify user has sufficient balance
+            console.log('[OTC] Verifying user balance...');
+            const userBalance = await getTokenBalance(token, account);
+            console.log('[OTC] User balance:', userBalance.toString(), 'Required:', requiredAmount.toString());
+            if (userBalance < requiredAmount) {
+                throw new Error('Insufficient token balance. Balance: ' + userBalance.toString() + ', Required: ' + requiredAmount.toString());
+            }
+            console.log('[OTC] ✓ Balance verified');
+            
+            // Validate token address
+            if (!token || token === '0x' || token.length !== 42) {
+                throw new Error('Invalid token address');
+            }
+            
+            // Validate token is not USDC (contract doesn't allow selling USDC for USDC)
+            const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+            if (token.toLowerCase() === USDC_ADDRESS.toLowerCase()) {
+                throw new Error('Cannot sell USDC for USDC. Please select a different token.');
+            }
+            
+            // Validate amounts are non-zero
+            const tokenAmountBigInt = BigInt(tokenAmount);
+            const usdcPriceBigInt = BigInt(usdcPrice);
+            
+            if (tokenAmountBigInt === 0n) {
+                throw new Error('Token amount cannot be zero');
+            }
+            if (usdcPriceBigInt === 0n) {
+                throw new Error('USDC price cannot be zero');
+            }
+            
+            console.log('[OTC] All validations passed');
+            
+            // Final double-check of allowance and balance right before transaction
+            console.log('[OTC] Final verification before transaction...');
+            const finalAllowance = await checkAllowance(token, account);
+            const finalBalance = await getTokenBalance(token, account);
+            console.log('[OTC] Final allowance:', finalAllowance.toString(), 'Required:', requiredAmount.toString());
+            console.log('[OTC] Final balance:', finalBalance.toString(), 'Required:', requiredAmount.toString());
+            
+            if (finalAllowance < requiredAmount) {
+                throw new Error('Final allowance check failed. Allowance: ' + finalAllowance.toString() + ', Required: ' + requiredAmount.toString() + '. Please approve again.');
+            }
+            if (finalBalance < requiredAmount) {
+                throw new Error('Final balance check failed. Balance: ' + finalBalance.toString() + ', Required: ' + requiredAmount.toString());
+            }
+            console.log('[OTC] ✓ Final checks passed');
             
             // Encode createListing function call
             // Function signature: createListing(address,uint256,uint256)
             // Selector: first 4 bytes of keccak256("createListing(address,uint256,uint256)")
-            const functionSelector = '0x4f7b6db1';
+            const functionSelector = '0x24780c56';
+            // Remove 0x prefix and pad to 64 chars (32 bytes), keep original case
             const tokenPadded = token.slice(2).padStart(64, '0');
             const tokenAmountPadded = BigInt(tokenAmount).toString(16).padStart(64, '0');
             const usdcPricePadded = BigInt(usdcPrice).toString(16).padStart(64, '0');
@@ -718,6 +668,53 @@ app.get("/", (c) => {
             console.log('[OTC] Transaction data:', data);
             console.log('[OTC] Function selector:', functionSelector);
             console.log('[OTC] Token:', token, 'Amount:', tokenAmount, 'Price:', usdcPrice);
+            
+            // Simulate transaction first to catch any revert reasons
+            console.log('[OTC] Simulating transaction to check for errors...');
+            try {
+                const simulateResponse = await fetch(RPC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_call',
+                        params: [{
+                            to: CONTRACT_ADDRESS,
+                            from: account,
+                            data: data
+                        }, 'latest'],
+                        id: 1
+                    })
+                });
+                
+                const simulateResult = await simulateResponse.json();
+                if (simulateResult.error) {
+                    console.error('[OTC] ✗ Simulation failed:', simulateResult.error);
+                    
+                    // Check for revert data in the error
+                    let errorMessage = 'Transaction would revert';
+                    if (simulateResult.error.data && simulateResult.error.data !== '0x') {
+                        errorMessage += '. Revert data: ' + simulateResult.error.data;
+                    }
+                    if (simulateResult.error.message) {
+                        errorMessage += '. ' + simulateResult.error.message;
+                    }
+                    
+                    // Don't proceed if simulation fails - it means the transaction will fail
+                    throw new Error(errorMessage);
+                }
+                
+                // Check if result is empty (also indicates failure)
+                if (!simulateResult.result || simulateResult.result === '0x') {
+                    throw new Error('Transaction simulation returned empty result - transaction would likely fail');
+                }
+                
+                console.log('[OTC] ✓ Simulation successful, transaction should work');
+            } catch (simError) {
+                console.error('[OTC] ✗ Simulation error:', simError);
+                // Don't proceed if simulation fails - throw the error to stop execution
+                throw simError;
+            }
             
             // Prepare transaction
             const tx = {
@@ -735,27 +732,49 @@ app.get("/", (c) => {
             });
             console.log('[OTC] ✓ Transaction sent, hash:', txHash);
             
-            // Wait for transaction receipt
+            // Wait for transaction receipt using public RPC
+            // (Farcaster Wallet doesn't support eth_getTransactionReceipt)
             console.log('[OTC] Waiting for transaction receipt...');
             let receipt = null;
             let attempts = 0;
-            while (!receipt) {
+            const maxAttempts = 60; // Wait up to 60 seconds
+            
+            while (!receipt && attempts < maxAttempts) {
                 attempts++;
                 try {
-                    receipt = await provider.request({
-                        method: 'eth_getTransactionReceipt',
-                        params: [txHash]
+                    const response = await fetch(RPC_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            jsonrpc: '2.0',
+                            method: 'eth_getTransactionReceipt',
+                            params: [txHash],
+                            id: 1
+                        })
                     });
-                    if (!receipt) {
-                        console.log(\`[OTC] Receipt not ready yet (attempt \${attempts}), waiting...\`);
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                    } else {
+                    
+                    const result = await response.json();
+                    if (result.result) {
+                        receipt = result.result;
                         console.log('[OTC] ✓ Transaction receipt received:', receipt);
+                    } else {
+                        // Transaction not yet mined, wait and retry
+                        if (attempts % 5 === 0) {
+                            console.log(\`[OTC] Still waiting for receipt (attempt \${attempts}/\${maxAttempts})...\`);
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 1000));
                     }
                 } catch (error) {
                     console.log(\`[OTC] Error getting receipt (attempt \${attempts}):\`, error);
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
+            }
+            
+            if (!receipt) {
+                console.log('[OTC] ⚠ Transaction receipt not confirmed yet, but transaction was sent');
+                // Transaction was sent, it will confirm eventually
+                // Return a placeholder receipt with the tx hash
+                receipt = { transactionHash: txHash };
             }
             
             // Extract listing ID from logs (simplified - would need proper log decoding)
@@ -1036,14 +1055,13 @@ app.get("/listing/:id", async (c) => {
   const listingId = c.req.param("id");
   const baseUrl = process.env.BASE_URL || "https://miniapp.anky.app";
 
-  // TODO: Fetch real listing data from database
-  // For now, we'll use placeholder data
+  // Use placeholder data for now - will be dynamically loaded via contract
   const listing = {
     id: listingId,
-    seller: "0x1234...5678",
-    token: "0xABCD...EFGH",
-    tokenAmount: "1000000000000000000",
-    usdcPrice: "1000000",
+    seller: "Loading...",
+    token: "Loading...",
+    tokenAmount: "0",
+    usdcPrice: "0",
     expiresAt: Date.now() + 86400000,
     isActive: true,
   };
@@ -1056,214 +1074,116 @@ app.get("/listing/:id", async (c) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OverTheCounter - Listing #${listingId}</title>
     <meta name="fc:miniapp" content='{"version":"1","imageUrl":"${baseUrl}/static/image.png","button":{"title":"Buy Tokens","action":{"type":"launch_miniapp","name":"OverTheCounter","url":"${baseUrl}/listing/${listingId}","splashImageUrl":"${baseUrl}/static/icon.svg","splashBackgroundColor":"#1a1a1a"}}}' />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap">
     <script type="module" src="https://esm.sh/@farcaster/miniapp-sdk"></script>
     <style>
-        * {
-            box-sizing: border-box;
-        }
         body {
-            font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #008080;
-            background-image: 
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
-                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
-            min-height: 100vh;
-        }
-        .container {
+            font-family: "Times New Roman", Times, serif;
             background: #c0c0c0;
-            border: 2px outset #c0c0c0;
-            padding: 8px;
-            box-shadow: 
-                inset -1px -1px 0px #000,
-                inset 1px 1px 0px #fff,
-                2px 2px 4px rgba(0,0,0,0.3);
-        }
-        .window-title {
-            background: linear-gradient(to right, #000080, #1084d0);
-            color: white;
-            padding: 4px 8px;
-            font-weight: bold;
-            font-size: 11px;
-            margin: -8px -8px 8px -8px;
-            border-bottom: 1px solid #000;
-            display: flex;
-            align-items: center;
-            height: 20px;
-        }
-        .window-content {
-            background: #c0c0c0;
-            padding: 16px;
+            color: #000000;
+            margin: 20px;
+            line-height: 1.4;
         }
         h1 {
-            color: #000;
-            margin: 0 0 8px 0;
-            font-size: 20px;
-            font-weight: bold;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
         }
-        .listing-id {
-            color: #000;
-            font-size: 12px;
-            margin-bottom: 16px;
+        h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        button {
+            padding: 8px 16px;
+            border: 2px outset;
+            background: #c0c0c0;
+            font-size: 14px;
+            font-family: "Times New Roman", Times, serif;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:active {
+            border: 2px inset;
+        }
+        button:disabled {
+            background: #999;
+            color: #666;
+            cursor: not-allowed;
         }
         .listing-info {
-            background: #fff;
-            border: 2px inset #c0c0c0;
-            padding: 12px;
-            margin-bottom: 16px;
+            border: 1px solid #000;
+            padding: 15px;
+            background: white;
+            margin-bottom: 20px;
         }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 12px;
-        }
-        .info-row:last-child {
-            margin-bottom: 0;
-        }
-        .label {
-            font-weight: bold;
-            color: #000;
-        }
-        .value {
-            color: #000;
-            word-break: break-all;
-        }
-        .button {
-            width: 100%;
-            padding: 8px 16px;
-            background: #c0c0c0;
-            color: #000;
-            border: 2px outset #c0c0c0;
-            font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
+        .contract-link {
             text-align: center;
-            box-shadow: 
-                inset -1px -1px 0px #000,
-                inset 1px 1px 0px #fff;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #000;
         }
-        .button:active {
-            border: 2px inset #c0c0c0;
-            box-shadow: 
-                inset 1px 1px 0px #000,
-                inset -1px -1px 0px #fff;
+        .contract-link a {
+            color: #0000ee;
+            text-decoration: underline;
         }
-        .button:hover:not(:disabled) {
-            background: #d4d0c8;
+        .contract-link a:visited {
+            color: #551a8b;
         }
-        .button:disabled {
-            background: #c0c0c0;
-            color: #808080;
-            cursor: not-allowed;
-            border: 2px inset #c0c0c0;
-            box-shadow: 
-                inset 1px 1px 0px #808080,
-                inset -1px -1px 0px #fff;
-        }
-        .back-button {
-            margin-bottom: 12px;
-        }
-        .success-message {
-            background: #c0c0c0;
-            color: #000;
-            padding: 12px;
-            border: 2px inset #c0c0c0;
-            margin-bottom: 16px;
+        .error-message, .success-message {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-bottom: 15px;
             display: none;
-            font-size: 12px;
-        }
-        .error-message {
-            background: #c0c0c0;
-            color: #000;
-            padding: 12px;
-            border: 2px inset #c0c0c0;
-            margin-bottom: 16px;
-            display: none;
-            font-size: 12px;
-        }
-        .status-active {
-            color: #000;
-            font-weight: bold;
-        }
-        .status-inactive {
-            color: #000;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="window-title">Token Listing</div>
-        <div class="window-content">
-            <button onclick="window.location.href='/'" class="button back-button">
-                ← Back to Create
-            </button>
-            
-            <h1>Token Listing</h1>
-            <div class="listing-id">Listing #${listingId}</div>
-            
-            <div id="success-message" class="success-message"></div>
-            <div id="error-message" class="error-message"></div>
-            
-            <div class="listing-info">
-            <div class="info-row">
-                <span class="label">Seller:</span>
-                <span class="value">${listing.seller}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Token:</span>
-                <span class="value">${listing.token}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Amount:</span>
-                <span class="value">${listing.tokenAmount}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Price:</span>
-                <span class="value">${listing.usdcPrice} USDC</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Status:</span>
-                <span class="value ${
-                  listing.isActive ? "status-active" : "status-inactive"
-                }">
-                    ${listing.isActive ? "Active" : "Inactive"}
-                </span>
-            </div>
-        </div>
-        
-        ${
-          listing.isActive
-            ? `
-        <button class="button" id="buy-button">
-            BUY TOKENS
-        </button>
-        `
-            : `
-        <button class="button" disabled>
-            LISTING NOT AVAILABLE
-        </button>
-        `
-        }
-        </div>
+    <button onclick="window.location.href='/'">← Back to Create</button>
+    
+    <h1>Token Listing</h1>
+    <p><b>Listing #${listingId}</b></p>
+    
+    <div id="success-message" class="success-message"></div>
+    <div id="error-message" class="error-message"></div>
+    
+    <div class="listing-info" id="listing-info">
+        <p><b>Seller:</b> <span id="seller-value">Loading...</span></p>
+        <p><b>Token:</b> <span id="token-value">Loading...</span></p>
+        <p><b>Amount:</b> <span id="amount-value">Loading...</span></p>
+        <p><b>Price:</b> <span id="price-value">Loading...</span></p>
+        <p><b>Status:</b> <span id="status-value">Loading...</span></p>
+    </div>
+    
+    <div id="usdc-balance-info" class="listing-info" style="display: none;">
+        <p><b>Your USDC Balance:</b> <span id="usdc-balance-value">Loading...</span></p>
+        <p><b>Required USDC:</b> <span id="required-usdc-value">Loading...</span></p>
+    </div>
+    
+    <button id="buy-button" style="display: none;">BUY TOKENS</button>
+    <button id="buy-usdc-button" style="display: none;">BUY USDC FIRST</button>
+    <button id="loading-button">LOADING...</button>
+    
+    <div class="contract-link">
+        <a href="https://basescan.org/address/0xa16e313bb5b6f03af9894b9991132f729b9069bf#code" target="_blank">read smart contract</a>
     </div>
 
     <script type="module">
         import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
         
         // OverTheCounter contract details
-        const CONTRACT_ADDRESS = '${process.env.CONTRACT_ADDRESS || "0x..."}';
+        const CONTRACT_ADDRESS = '0xa16e313Bb5b6f03Af9894b9991132F729B9069Bf';
         const LISTING_ID = '${listingId}';
+        const USDC_ADDRESS = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+        const RPC_URL = 'https://mainnet.base.org';
         
         console.log('[OTC] Listing detail page script loaded');
         console.log('[OTC] Listing ID:', LISTING_ID);
         console.log('[OTC] Contract address:', CONTRACT_ADDRESS);
+        
+        let listingData = null;
+        let userAccount = null;
         
         // Initialize SDK when page loads
         async function initializeApp() {
@@ -1274,6 +1194,9 @@ app.get("/listing/:id", async (c) => {
             } catch (error) {
                 console.log('[OTC] ⚠ Not in Farcaster miniapp context:', error);
             }
+            
+            // Load listing data and user info
+            await loadListingData();
         }
         
         // Get ethereum provider
@@ -1287,6 +1210,200 @@ app.get("/listing/:id", async (c) => {
                 console.log('[OTC] ⚠ SDK provider failed, using window.ethereum fallback:', error);
                 console.log('[OTC] window.ethereum available:', !!window.ethereum);
                 return window.ethereum;
+            }
+        }
+        
+        // Get user account
+        async function getUserAccount() {
+            if (userAccount) return userAccount;
+            const provider = await getEthereumProvider();
+            if (!provider) throw new Error('No Ethereum provider found');
+            
+            const accounts = await provider.request({ method: 'eth_requestAccounts' });
+            userAccount = accounts[0];
+            return userAccount;
+        }
+        
+        // Call contract view function via RPC
+        async function callContract(data) {
+            const response = await fetch(RPC_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    method: 'eth_call',
+                    params: [{
+                        to: CONTRACT_ADDRESS,
+                        data: data
+                    }, 'latest'],
+                    id: 1
+                })
+            });
+            
+            const result = await response.json();
+            if (result.error) throw new Error(result.error.message);
+            return result.result;
+        }
+        
+        // Get token balance
+        async function getTokenBalance(tokenAddress, userAddress) {
+            const ERC20_BALANCEOF = '0x70a08231';
+            const addressPadded = userAddress.slice(2).padStart(64, '0');
+            const data = ERC20_BALANCEOF + addressPadded;
+            
+            const response = await fetch(RPC_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    method: 'eth_call',
+                    params: [{
+                        to: tokenAddress,
+                        data: data
+                    }, 'latest'],
+                    id: 1
+                })
+            });
+            
+            const result = await response.json();
+            if (result.error) throw new Error(result.error.message);
+            return BigInt(result.result || '0');
+        }
+        
+        // Get token decimals
+        async function getTokenDecimals(tokenAddress) {
+            try {
+                const ERC20_DECIMALS = '0x313ce567';
+                const response = await fetch(RPC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_call',
+                        params: [{
+                            to: tokenAddress,
+                            data: ERC20_DECIMALS
+                        }, 'latest'],
+                        id: 1
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.error || !result.result) return 18;
+                return parseInt(result.result, 16);
+            } catch {
+                return 18;
+            }
+        }
+        
+        // Format token amount for display
+        function formatTokenAmount(amount, decimals = 18) {
+            const divisor = BigInt(10 ** decimals);
+            const humanReadable = Number(amount) / Number(divisor);
+            return humanReadable.toLocaleString();
+        }
+        
+        // Format USDC amount (6 decimals)
+        function formatUSDC(amount) {
+            const humanReadable = Number(amount) / 1000000;
+            return humanReadable.toFixed(2);
+        }
+        
+        // Load listing data from contract
+        async function loadListingData() {
+            try {
+                console.log('[OTC] Loading listing data...');
+                
+                // Get listing data using getListing function
+                const GET_LISTING_SELECTOR = '0x107a274a'; // getListing(uint256)
+                const listingIdPadded = BigInt(LISTING_ID).toString(16).padStart(64, '0');
+                const data = GET_LISTING_SELECTOR + listingIdPadded;
+                
+                const result = await callContract(data);
+                
+                // Parse the result (getListing returns tuple)
+                // (address seller, address token, uint256 tokenAmount, uint256 usdcPrice, uint256 expiresAt, bool isActive, bool canExecute)
+                const seller = '0x' + result.slice(26, 66);
+                const token = '0x' + result.slice(90, 130);
+                const tokenAmount = BigInt('0x' + result.slice(130, 194));
+                const usdcPrice = BigInt('0x' + result.slice(194, 258));
+                const expiresAt = BigInt('0x' + result.slice(258, 322));
+                const isActive = result.slice(322, 323) === '1';
+                
+                listingData = {
+                    seller,
+                    token,
+                    tokenAmount,
+                    usdcPrice,
+                    expiresAt,
+                    isActive
+                };
+                
+                console.log('[OTC] Listing data loaded:', listingData);
+                
+                // Get token decimals for formatting
+                const tokenDecimals = await getTokenDecimals(token);
+                
+                // Update UI with listing data
+                document.getElementById('seller-value').textContent = seller.slice(0, 6) + '...' + seller.slice(-4);
+                document.getElementById('token-value').textContent = token.slice(0, 6) + '...' + token.slice(-4);
+                document.getElementById('amount-value').textContent = formatTokenAmount(tokenAmount, tokenDecimals);
+                document.getElementById('price-value').textContent = formatUSDC(usdcPrice) + ' USDC';
+                document.getElementById('status-value').textContent = isActive ? 'Active' : 'Inactive';
+                document.getElementById('status-value').className = isActive ? 'value status-active' : 'value status-inactive';
+                
+                // Load user account and check USDC balance
+                await checkUserBalance();
+                
+            } catch (error) {
+                console.error('[OTC] Error loading listing:', error);
+                document.getElementById('seller-value').textContent = 'Error loading';
+                document.getElementById('token-value').textContent = 'Error loading';
+                document.getElementById('amount-value').textContent = 'Error loading';
+                document.getElementById('price-value').textContent = 'Error loading';
+                document.getElementById('status-value').textContent = 'Error';
+            }
+        }
+        
+        // Check user's USDC balance
+        async function checkUserBalance() {
+            try {
+                const account = await getUserAccount();
+                const usdcBalance = await getTokenBalance(USDC_ADDRESS, account);
+                
+                const formattedUSDCBalance = formatUSDC(usdcBalance);
+                const formattedRequiredUSDC = formatUSDC(listingData.usdcPrice);
+                
+                // Update balance display
+                document.getElementById('usdc-balance-value').textContent = formattedUSDCBalance + ' USDC';
+                document.getElementById('required-usdc-value').textContent = formattedRequiredUSDC + ' USDC';
+                document.getElementById('usdc-balance-info').style.display = 'block';
+                
+                // Show appropriate button based on balance and listing status
+                document.getElementById('loading-button').style.display = 'none';
+                
+                if (!listingData.isActive) {
+                    // Listing is not active
+                    const inactiveButton = document.createElement('button');
+                    inactiveButton.className = 'button';
+                    inactiveButton.disabled = true;
+                    inactiveButton.textContent = 'LISTING NOT AVAILABLE';
+                    document.querySelector('.container .window-content').appendChild(inactiveButton);
+                } else if (usdcBalance >= listingData.usdcPrice) {
+                    // User has enough USDC
+                    document.getElementById('buy-button').style.display = 'block';
+                } else {
+                    // User needs more USDC
+                    document.getElementById('buy-usdc-button').style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('[OTC] Error checking balance:', error);
+                document.getElementById('usdc-balance-value').textContent = 'Error checking balance';
+                document.getElementById('loading-button').style.display = 'none';
+                
+                // Show generic buy button if we can't check balance
+                document.getElementById('buy-button').style.display = 'block';
             }
         }
         
@@ -1307,7 +1424,7 @@ app.get("/listing/:id", async (c) => {
             console.log('[OTC] Using account:', account);
             
             // Prepare transaction for executeListing
-            const functionSelector = '0x' + '06d05b54'; // executeListing function selector
+            const functionSelector = '0x625eb5a7'; // executeListing function selector
             const listingIdPadded = BigInt(listingId).toString(16).padStart(64, '0');
             const data = functionSelector + listingIdPadded;
             console.log('[OTC] Transaction data:', data);
@@ -1331,13 +1448,11 @@ app.get("/listing/:id", async (c) => {
         }
         
         // Handle buy button
-        const buyButton = document.getElementById('buy-button');
-        if (buyButton) {
-            console.log('[OTC] Buy button found, attaching event listener');
-            buyButton.addEventListener('click', async () => {
-                console.log('[OTC] Buy button clicked');
-                const successMessage = document.getElementById('success-message');
-                const errorMessage = document.getElementById('error-message');
+        document.getElementById('buy-button').addEventListener('click', async () => {
+            console.log('[OTC] Buy button clicked');
+            const buyButton = document.getElementById('buy-button');
+            const successMessage = document.getElementById('success-message');
+            const errorMessage = document.getElementById('error-message');
                 
                 try {
                     buyButton.disabled = true;
@@ -1372,10 +1487,38 @@ app.get("/listing/:id", async (c) => {
                     buyButton.textContent = 'BUY TOKENS';
                     console.log('[OTC] Buy button re-enabled after error');
                 }
-            });
-        } else {
-            console.log('[OTC] ⚠ Buy button not found on page');
-        }
+        });
+        
+        // Handle buy USDC button
+        document.getElementById('buy-usdc-button').addEventListener('click', async () => {
+            console.log('[OTC] Buy USDC button clicked');
+            try {
+                const requiredUSDC = listingData.usdcPrice;
+                // Convert to human readable amount for swap (6 decimals)
+                const usdcAmountForSwap = Number(requiredUSDC) / 1000000;
+                
+                console.log('[OTC] Swapping ETH for', usdcAmountForSwap, 'USDC');
+                
+                const swapParams = {
+                    sellToken: "eip155:8453/slip44:60", // ETH on Base
+                    buyToken: "eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // USDC on Base
+                    buyAmount: requiredUSDC.toString(), // Raw amount (6 decimals)
+                };
+                
+                console.log('[OTC] Swap parameters:', swapParams);
+                await sdk.actions.swapToken(swapParams);
+                console.log('[OTC] ✓ USDC swap completed');
+                
+                // Refresh balance and update UI
+                await checkUserBalance();
+                
+            } catch (error) {
+                console.error('[OTC] ✗ Error swapping for USDC:', error);
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = \`Error buying USDC: \${error.message}\`;
+                errorMessage.style.display = 'block';
+            }
+        });
         
         // Initialize app
         console.log('[OTC] Starting listing detail page initialization...');
