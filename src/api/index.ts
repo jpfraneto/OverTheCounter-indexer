@@ -211,6 +211,72 @@ app.get("/", (c) => {
             display: none;
             font-size: 12px;
         }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+        }
+        .balance-display {
+            background: #fff;
+            border: 2px inset #c0c0c0;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 12px;
+        }
+        .balance-label {
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .balance-value {
+            font-size: 14px;
+            word-break: break-all;
+        }
+        .slider-container {
+            margin-bottom: 16px;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 20px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #c0c0c0;
+            border: 2px inset #c0c0c0;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #c0c0c0;
+            border: 2px outset #c0c0c0;
+            cursor: pointer;
+            box-shadow: 
+                inset -1px -1px 0px #000,
+                inset 1px 1px 0px #fff;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #c0c0c0;
+            border: 2px outset #c0c0c0;
+            cursor: pointer;
+            box-shadow: 
+                inset -1px -1px 0px #000,
+                inset 1px 1px 0px #fff;
+        }
+        .loading {
+            text-align: center;
+            padding: 12px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -224,25 +290,71 @@ app.get("/", (c) => {
             <div id="error-message" class="error-message"></div>
             
             <form id="create-listing-form">
-            <div class="form-group">
-                <label for="token">Token Address</label>
-                <input type="text" id="token" name="token" placeholder="0x..." required>
-            </div>
-            
-            <div class="form-group">
-                <label for="tokenAmount">Token Amount</label>
-                <input type="text" id="tokenAmount" name="tokenAmount" placeholder="1000000000000000000" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="usdcPrice">USDC Price (total)</label>
-                <input type="text" id="usdcPrice" name="usdcPrice" placeholder="1000000" required>
-            </div>
-            
-            <button type="submit" class="button" id="create-button">
-                CREATE LISTING
-            </button>
-        </form>
+                <!-- Step 1: Contract Address -->
+                <div class="step active" id="step1">
+                    <div class="form-group">
+                        <label for="token">Token Contract Address</label>
+                        <input type="text" id="token" name="token" placeholder="0x..." required>
+                    </div>
+                    <button type="button" class="button" id="next-step1">
+                        NEXT →
+                    </button>
+                </div>
+                
+                <!-- Step 2: Loading Balance -->
+                <div class="step" id="step2">
+                    <div class="loading">Loading your balance...</div>
+                </div>
+                
+                <!-- Step 2.5: No Balance - Buy Token -->
+                <div class="step" id="step2-no-balance">
+                    <div class="balance-display">
+                        <div class="balance-label">You don't have any of this token</div>
+                        <div style="margin-top: 16px; font-size: 12px;">Buy some tokens to create a listing!</div>
+                    </div>
+                    <button type="button" class="button" id="buy-token-button">
+                        BUY TOKEN
+                    </button>
+                    <button type="button" class="button" id="back-to-step1" style="margin-top: 12px;">
+                        ← Back
+                    </button>
+                </div>
+                
+                <!-- Step 3: Balance & Slider -->
+                <div class="step" id="step3">
+                    <div class="balance-display">
+                        <div class="balance-label">Your Balance:</div>
+                        <div class="balance-value" id="balance-display">0</div>
+                    </div>
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Amount to Sell:</span>
+                            <span id="amount-display">0</span>
+                        </div>
+                        <input type="range" id="amount-slider" min="0" max="100" value="0" step="1">
+                        <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px;">
+                            <span>0%</span>
+                            <span>50%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                    <button type="button" class="button" id="next-step3">
+                        NEXT →
+                    </button>
+                </div>
+                
+                <!-- Step 4: Price Input -->
+                <div class="step" id="step4">
+                    <div class="form-group">
+                        <label for="usdcPrice">USDC Price (total)</label>
+                        <input type="text" id="usdcPrice" name="usdcPrice" placeholder="1000000" required>
+                        <small style="font-size: 10px; color: #666; display: block; margin-top: 4px;">Price in USDC (6 decimals)</small>
+                    </div>
+                    <button type="submit" class="button" id="create-button">
+                        CREATE LISTING
+                    </button>
+                </div>
+            </form>
         
         <div id="share-section" style="display: none;">
             <button type="button" class="button share-button" id="share-button">
@@ -256,9 +368,18 @@ app.get("/", (c) => {
         import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
         
         let createdListingId = null;
+        let userBalance = null;
+        let tokenAddress = null;
+        let tokenDecimals = 18; // Default, will try to fetch
+        let userAccount = null;
         
         // OverTheCounter contract details
         const CONTRACT_ADDRESS = '${process.env.CONTRACT_ADDRESS || '0x...'}';
+        
+        // ERC20 balanceOf function selector: balanceOf(address)
+        const ERC20_BALANCEOF = '0x70a08231';
+        // ERC20 decimals() function selector
+        const ERC20_DECIMALS = '0x313ce567';
         
         // Initialize SDK when page loads
         async function initializeApp() {
@@ -278,6 +399,100 @@ app.get("/", (c) => {
                 console.log('Using window.ethereum fallback');
                 return window.ethereum;
             }
+        }
+        
+        // Get user account
+        async function getUserAccount() {
+            if (userAccount) return userAccount;
+            const provider = await getEthereumProvider();
+            if (!provider) {
+                throw new Error('No Ethereum provider found');
+            }
+            const accounts = await provider.request({ method: 'eth_requestAccounts' });
+            userAccount = accounts[0];
+            return userAccount;
+        }
+        
+        // Call ERC20 balanceOf
+        async function getTokenBalance(tokenAddress, userAddress) {
+            const provider = await getEthereumProvider();
+            if (!provider) {
+                throw new Error('No Ethereum provider found');
+            }
+            
+            // Encode balanceOf(address) call
+            const addressPadded = userAddress.slice(2).padStart(64, '0');
+            const data = ERC20_BALANCEOF + addressPadded;
+            
+            const result = await provider.request({
+                method: 'eth_call',
+                params: [{
+                    to: tokenAddress,
+                    data: data
+                }, 'latest']
+            });
+            
+            return BigInt(result);
+        }
+        
+        // Get token decimals
+        async function getTokenDecimals(tokenAddress) {
+            try {
+                const provider = await getEthereumProvider();
+                if (!provider) return 18;
+                
+                const result = await provider.request({
+                    method: 'eth_call',
+                    params: [{
+                        to: tokenAddress,
+                        data: ERC20_DECIMALS
+                    }, 'latest']
+                });
+                
+                return parseInt(result, 16);
+            } catch (error) {
+                console.log('Could not fetch decimals, using 18');
+                return 18;
+            }
+        }
+        
+        // Format token amount for display
+        function formatTokenAmount(amount, decimals = 18) {
+            const divisor = BigInt(10 ** decimals);
+            const wholePart = amount / divisor;
+            const fractionalPart = amount % divisor;
+            
+            if (fractionalPart === 0n) {
+                return wholePart.toString();
+            }
+            
+            const fractionalStr = fractionalPart.toString().padStart(decimals, '0');
+            const trimmedFractional = fractionalStr.replace(/0+$/, '');
+            
+            return trimmedFractional ? \`\${wholePart}.\${trimmedFractional}\` : wholePart.toString();
+        }
+        
+        // Show step
+        function showStep(stepNumber) {
+            document.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('active');
+            });
+            const stepId = typeof stepNumber === 'string' ? stepNumber : \`step\${stepNumber}\`;
+            document.getElementById(stepId).classList.add('active');
+        }
+        
+        // Update amount display from slider
+        function updateAmountDisplay() {
+            const slider = document.getElementById('amount-slider');
+            const percentage = parseInt(slider.value);
+            
+            if (!userBalance || userBalance === 0n) {
+                document.getElementById('amount-display').textContent = '0';
+                return;
+            }
+            
+            const amount = (userBalance * BigInt(percentage)) / 100n;
+            document.getElementById('amount-display').textContent = formatTokenAmount(amount, tokenDecimals);
         }
         
         // Create listing on smart contract
@@ -333,6 +548,108 @@ app.get("/", (c) => {
             return receipt.logs.length > 0 ? Date.now() : Date.now();
         }
         
+        // Step 1: Handle contract address input
+        document.getElementById('next-step1').addEventListener('click', async () => {
+            const tokenInput = document.getElementById('token');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            
+            tokenAddress = tokenInput.value.trim();
+            
+            if (!tokenAddress || !tokenAddress.startsWith('0x') || tokenAddress.length !== 42) {
+                errorMessage.textContent = 'Please enter a valid contract address';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            try {
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'none';
+                
+                // Move to loading step
+                showStep(2);
+                
+                // Get user account
+                const account = await getUserAccount();
+                
+                // Fetch balance and decimals
+                const [balance, decimals] = await Promise.all([
+                    getTokenBalance(tokenAddress, account),
+                    getTokenDecimals(tokenAddress)
+                ]);
+                
+                userBalance = balance;
+                tokenDecimals = decimals;
+                
+                if (userBalance === 0n) {
+                    // Show no balance step with buy button
+                    showStep('step2-no-balance');
+                    return;
+                }
+                
+                // Show balance and slider step
+                document.getElementById('balance-display').textContent = formatTokenAmount(userBalance, tokenDecimals);
+                updateAmountDisplay(); // Initialize slider display
+                showStep(3);
+                
+            } catch (error) {
+                console.error('Error fetching balance:', error);
+                errorMessage.textContent = \`Error: \${error.message}\`;
+                errorMessage.style.display = 'block';
+                showStep(1);
+            }
+        });
+        
+        // Handle buy token button (no balance step)
+        document.getElementById('buy-token-button').addEventListener('click', async () => {
+            try {
+                // USDC on Base: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
+                // Format: eip155:8453/erc20:{address}
+                await sdk.actions.swapToken({
+                    sellToken: "eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    buyToken: \`eip155:8453/erc20:\${tokenAddress}\`,
+                    sellAmount: "1000000", // 1 USDC (6 decimals)
+                });
+                
+                // After swap, refresh balance
+                const account = await getUserAccount();
+                const balance = await getTokenBalance(tokenAddress, account);
+                userBalance = balance;
+                
+                if (userBalance > 0n) {
+                    document.getElementById('balance-display').textContent = formatTokenAmount(userBalance, tokenDecimals);
+                    updateAmountDisplay();
+                    showStep(3);
+                }
+            } catch (error) {
+                console.error('Error swapping token:', error);
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = \`Error: \${error.message}\`;
+                errorMessage.style.display = 'block';
+            }
+        });
+        
+        // Handle back button from no balance step
+        document.getElementById('back-to-step1').addEventListener('click', () => {
+            showStep(1);
+        });
+        
+        // Step 3: Handle slider and move to price step
+        document.getElementById('amount-slider').addEventListener('input', updateAmountDisplay);
+        document.getElementById('next-step3').addEventListener('click', () => {
+            const slider = document.getElementById('amount-slider');
+            const percentage = parseInt(slider.value);
+            
+            if (percentage === 0) {
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.textContent = 'Please select an amount to sell';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            showStep(4);
+        });
+        
         // Handle form submission
         document.getElementById('create-listing-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -349,13 +666,13 @@ app.get("/", (c) => {
                 successMessage.style.display = 'none';
                 errorMessage.style.display = 'none';
                 
-                const formData = new FormData(e.target);
-                const token = formData.get('token');
-                const tokenAmount = formData.get('tokenAmount');
-                const usdcPrice = formData.get('usdcPrice');
+                const usdcPrice = document.getElementById('usdcPrice').value;
+                const slider = document.getElementById('amount-slider');
+                const percentage = parseInt(slider.value);
+                const tokenAmount = (userBalance * BigInt(percentage)) / 100n;
                 
                 // Create listing
-                const listingId = await createListing(token, tokenAmount, usdcPrice);
+                const listingId = await createListing(tokenAddress, tokenAmount.toString(), usdcPrice);
                 createdListingId = listingId;
                 
                 // Show success message
@@ -367,6 +684,7 @@ app.get("/", (c) => {
                 
                 // Reset form
                 e.target.reset();
+                showStep(1);
                 
             } catch (error) {
                 console.error('Error creating listing:', error);
