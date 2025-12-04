@@ -2,6 +2,8 @@ import { db } from "ponder:api";
 import schema from "ponder:schema";
 import { Hono } from "hono";
 import { client, graphql } from "ponder";
+import { readFile } from "fs/promises";
+import { join } from "path";
 
 const app = new Hono();
 
@@ -34,6 +36,17 @@ app.get("/static/og-image.svg", (c) => {
 </svg>`, { headers: { "Content-Type": "image/svg+xml" } });
 });
 
+// Serve PNG image
+app.get("/static/image.png", async (c) => {
+  try {
+    const imagePath = join(process.cwd(), "static", "image.png");
+    const imageBuffer = await readFile(imagePath);
+    return c.body(imageBuffer, 200, { "Content-Type": "image/png" });
+  } catch (error) {
+    return c.text("Image not found", 404);
+  }
+});
+
 // Farcaster miniapp manifest
 app.get("/.well-known/farcaster.json", (c) => {
   const manifest = {
@@ -47,7 +60,7 @@ app.get("/.well-known/farcaster.json", (c) => {
       name: "OverTheCounter",
       iconUrl: `${process.env.BASE_URL || 'https://miniapp.anky.app'}/static/icon.svg`,
       homeUrl: process.env.BASE_URL || 'https://miniapp.anky.app',
-      imageUrl: `${process.env.BASE_URL || 'https://miniapp.anky.app'}/static/og-image.svg`,
+      imageUrl: `${process.env.BASE_URL || 'https://miniapp.anky.app'}/static/image.png`,
       buttonTitle: "Trade Tokens",
       splashImageUrl: `${process.env.BASE_URL || 'https://miniapp.anky.app'}/static/icon.svg`,
       splashBackgroundColor: "#1a1a1a"
@@ -66,7 +79,7 @@ app.get("/", (c) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OverTheCounter - Create Listing</title>
-    <meta name="fc:miniapp" content='{"version":"1","imageUrl":"${baseUrl}/static/og-image.svg","button":{"title":"Trade Tokens","action":{"type":"launch_miniapp","name":"OverTheCounter","url":"${baseUrl}","splashImageUrl":"${baseUrl}/static/icon.svg","splashBackgroundColor":"#1a1a1a"}}}' />
+    <meta name="fc:miniapp" content='{"version":"1","imageUrl":"${baseUrl}/static/image.png","button":{"title":"Trade Tokens","action":{"type":"launch_miniapp","name":"OverTheCounter","url":"${baseUrl}","splashImageUrl":"${baseUrl}/static/icon.svg","splashBackgroundColor":"#1a1a1a"}}}' />
     <script type="module" src="https://esm.sh/@farcaster/miniapp-sdk"></script>
     <style>
         body {
@@ -368,7 +381,7 @@ app.get("/listing/:id", async (c) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OverTheCounter - Listing #${listingId}</title>
-    <meta name="fc:miniapp" content='{"version":"1","imageUrl":"${baseUrl}/static/og-image.svg","button":{"title":"Buy Tokens","action":{"type":"launch_miniapp","name":"OverTheCounter","url":"${baseUrl}/listing/${listingId}","splashImageUrl":"${baseUrl}/static/icon.svg","splashBackgroundColor":"#1a1a1a"}}}' />
+    <meta name="fc:miniapp" content='{"version":"1","imageUrl":"${baseUrl}/static/image.png","button":{"title":"Buy Tokens","action":{"type":"launch_miniapp","name":"OverTheCounter","url":"${baseUrl}/listing/${listingId}","splashImageUrl":"${baseUrl}/static/icon.svg","splashBackgroundColor":"#1a1a1a"}}}' />
     <script type="module" src="https://esm.sh/@farcaster/miniapp-sdk"></script>
     <style>
         body {
