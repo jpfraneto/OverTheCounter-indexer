@@ -9,15 +9,19 @@ const app = new Hono();
 
 // Serve static files - simple SVG responses
 app.get("/static/icon.svg", (c) => {
-  return c.html(`<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  return c.html(
+    `<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect width="200" height="200" rx="40" fill="#0066cc"/>
 <text x="100" y="110" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="white">OTC</text>
 <path d="M50 130 L70 150 L150 150 L170 130" stroke="white" stroke-width="4" fill="none"/>
-</svg>`, { headers: { "Content-Type": "image/svg+xml" } });
+</svg>`,
+    { headers: { "Content-Type": "image/svg+xml" } }
+  );
 });
 
 app.get("/static/og-image.svg", (c) => {
-  return c.html(`<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  return c.html(
+    `<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect width="600" height="400" fill="url(#gradient)"/>
 <text x="300" y="150" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="white">OverTheCounter</text>
 <text x="300" y="200" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#b0bec5">Trade tokens directly on-chain</text>
@@ -33,7 +37,9 @@ app.get("/static/og-image.svg", (c) => {
         <polygon points="0 0, 10 3.5, 0 7" fill="white" />
     </marker>
 </defs>
-</svg>`, { headers: { "Content-Type": "image/svg+xml" } });
+</svg>`,
+    { headers: { "Content-Type": "image/svg+xml" } }
+  );
 });
 
 // Serve PNG image
@@ -53,25 +59,31 @@ app.get("/.well-known/farcaster.json", (c) => {
     accountAssociation: {
       header: process.env.MANIFEST_HEADER || "",
       payload: process.env.MANIFEST_PAYLOAD || "",
-      signature: process.env.MANIFEST_SIGNATURE || ""
+      signature: process.env.MANIFEST_SIGNATURE || "",
     },
     miniapp: {
       version: "1",
       name: "OverTheCounter",
-      iconUrl: `${process.env.BASE_URL || 'https://miniapp.anky.app'}/static/icon.svg`,
-      homeUrl: process.env.BASE_URL || 'https://miniapp.anky.app',
-      imageUrl: `${process.env.BASE_URL || 'https://miniapp.anky.app'}/static/image.png`,
+      iconUrl: `${
+        process.env.BASE_URL || "https://miniapp.anky.app"
+      }/static/icon.svg`,
+      homeUrl: process.env.BASE_URL || "https://miniapp.anky.app",
+      imageUrl: `${
+        process.env.BASE_URL || "https://miniapp.anky.app"
+      }/static/image.png`,
       buttonTitle: "Trade Tokens",
-      splashImageUrl: `${process.env.BASE_URL || 'https://miniapp.anky.app'}/static/icon.svg`,
-      splashBackgroundColor: "#1a1a1a"
-    }
+      splashImageUrl: `${
+        process.env.BASE_URL || "https://miniapp.anky.app"
+      }/static/icon.svg`,
+      splashBackgroundColor: "#1a1a1a",
+    },
   };
   return c.json(manifest);
 });
 
 // Main page - Create listing form
 app.get("/", (c) => {
-  const baseUrl = process.env.BASE_URL || 'https://miniapp.anky.app';
+  const baseUrl = process.env.BASE_URL || "https://miniapp.anky.app";
   return c.html(`
 <!DOCTYPE html>
 <html lang="en">
@@ -367,6 +379,8 @@ app.get("/", (c) => {
     <script type="module">
         import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
         
+        console.log('[OTC] Miniapp script loaded');
+        
         let createdListingId = null;
         let userBalance = null;
         let tokenAddress = null;
@@ -374,84 +388,134 @@ app.get("/", (c) => {
         let userAccount = null;
         
         // OverTheCounter contract details
-        const CONTRACT_ADDRESS = '${process.env.CONTRACT_ADDRESS || '0x...'}';
-        
-        // ERC20 balanceOf function selector: balanceOf(address)
-        const ERC20_BALANCEOF = '0x70a08231';
-        // ERC20 decimals() function selector
-        const ERC20_DECIMALS = '0x313ce567';
+        const CONTRACT_ADDRESS = '${process.env.CONTRACT_ADDRESS || "0x..."}';
+        console.log('[OTC] Contract address:', CONTRACT_ADDRESS);
         
         // Initialize SDK when page loads
         async function initializeApp() {
+            console.log('[OTC] Initializing app...');
             try {
                 await sdk.actions.ready();
-                console.log('Farcaster SDK ready');
+                console.log('[OTC] ✓ Farcaster SDK ready');
             } catch (error) {
-                console.log('Not in Farcaster miniapp context:', error);
+                console.log('[OTC] ⚠ Not in Farcaster miniapp context:', error);
             }
         }
         
         // Get ethereum provider
         async function getEthereumProvider() {
+            console.log('[OTC] Getting Ethereum provider...');
             try {
-                return await sdk.wallet.getEthereumProvider();
+                const provider = await sdk.wallet.getEthereumProvider();
+                console.log('[OTC] ✓ Got provider from SDK:', !!provider);
+                return provider;
             } catch (error) {
-                console.log('Using window.ethereum fallback');
+                console.log('[OTC] ⚠ SDK provider failed, using window.ethereum fallback:', error);
+                console.log('[OTC] window.ethereum available:', !!window.ethereum);
                 return window.ethereum;
             }
         }
         
         // Get user account
         async function getUserAccount() {
-            if (userAccount) return userAccount;
+            if (userAccount) {
+                console.log('[OTC] Using cached account:', userAccount);
+                return userAccount;
+            }
+            console.log('[OTC] Requesting user account...');
             const provider = await getEthereumProvider();
             if (!provider) {
+                console.error('[OTC] ✗ No Ethereum provider found');
                 throw new Error('No Ethereum provider found');
             }
-            const accounts = await provider.request({ method: 'eth_requestAccounts' });
-            userAccount = accounts[0];
-            return userAccount;
+            try {
+                const accounts = await provider.request({ method: 'eth_requestAccounts' });
+                userAccount = accounts[0];
+                console.log('[OTC] ✓ User account:', userAccount);
+                return userAccount;
+            } catch (error) {
+                console.error('[OTC] ✗ Error requesting accounts:', error);
+                throw error;
+            }
         }
         
-        // Call ERC20 balanceOf
+        // Call ERC20 balanceOf via public RPC
         async function getTokenBalance(tokenAddress, userAddress) {
-            const provider = await getEthereumProvider();
-            if (!provider) {
-                throw new Error('No Ethereum provider found');
-            }
+            console.log('[OTC] Fetching token balance...', { tokenAddress, userAddress });
             
-            // Encode balanceOf(address) call
+            const RPC_URL = 'https://mainnet.base.org';
+            // ERC20 balanceOf function selector: balanceOf(address)
+            const ERC20_BALANCEOF = '0x70a08231';
             const addressPadded = userAddress.slice(2).padStart(64, '0');
             const data = ERC20_BALANCEOF + addressPadded;
+            console.log('[OTC] Balance call data:', data);
             
-            const result = await provider.request({
-                method: 'eth_call',
-                params: [{
-                    to: tokenAddress,
-                    data: data
-                }, 'latest']
-            });
-            
-            return BigInt(result);
-        }
-        
-        // Get token decimals
-        async function getTokenDecimals(tokenAddress) {
             try {
-                const provider = await getEthereumProvider();
-                if (!provider) return 18;
-                
-                const result = await provider.request({
-                    method: 'eth_call',
-                    params: [{
-                        to: tokenAddress,
-                        data: ERC20_DECIMALS
-                    }, 'latest']
+                const response = await fetch(RPC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_call',
+                        params: [{
+                            to: tokenAddress,
+                            data: data
+                        }, 'latest'],
+                        id: 1
+                    })
                 });
                 
-                return parseInt(result, 16);
+                const result = await response.json();
+                if (result.error) {
+                    throw new Error(result.error.message || 'RPC error');
+                }
+                
+                if (!result.result) {
+                    throw new Error('No result from RPC');
+                }
+                
+                const balance = BigInt(result.result);
+                console.log('[OTC] ✓ Token balance (raw):', balance.toString());
+                return balance;
             } catch (error) {
-                console.log('Could not fetch decimals, using 18');
+                console.error('[OTC] ✗ Error fetching balance:', error);
+                throw error;
+            }
+        }
+        
+        // Get token decimals via public RPC
+        async function getTokenDecimals(tokenAddress) {
+            console.log('[OTC] Fetching token decimals for:', tokenAddress);
+            const RPC_URL = 'https://mainnet.base.org';
+            // ERC20 decimals() function selector
+            const ERC20_DECIMALS = '0x313ce567';
+            
+            try {
+                const response = await fetch(RPC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_call',
+                        params: [{
+                            to: tokenAddress,
+                            data: ERC20_DECIMALS
+                        }, 'latest'],
+                        id: 1
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.error || !result.result) {
+                    console.log('[OTC] ⚠ Failed to fetch decimals, using default 18');
+                    return 18;
+                }
+                
+                const decimals = parseInt(result.result, 16);
+                console.log('[OTC] ✓ Token decimals:', decimals);
+                return decimals;
+            } catch (error) {
+                console.log('[OTC] ⚠ Could not fetch decimals, using 18:', error);
                 return 18;
             }
         }
@@ -460,12 +524,14 @@ app.get("/", (c) => {
         function formatTokenAmount(amount, decimals = 18) {
             const divisor = BigInt(10 ** decimals);
             const humanReadable = amount / divisor;
-            // Add commas for readability
-            return humanReadable.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');
+            const formatted = humanReadable.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');
+            console.log('[OTC] Formatting amount:', { raw: amount.toString(), decimals, formatted });
+            return formatted;
         }
         
         // Convert human-readable number to raw format (with decimals)
         function toRawAmount(humanReadable, decimals) {
+            console.log('[OTC] Converting to raw amount:', { humanReadable, decimals });
             // Handle decimal input (e.g., "10.5" -> 10.5 * 10^decimals)
             const parts = humanReadable.toString().split('.');
             const wholePart = parts[0] || '0';
@@ -475,27 +541,34 @@ app.get("/", (c) => {
             const paddedFractional = fractionalPart.padEnd(decimals, '0').slice(0, decimals);
             const rawAmount = BigInt(wholePart) * BigInt(10 ** decimals) + BigInt(paddedFractional || '0');
             
+            console.log('[OTC] Raw amount result:', rawAmount.toString());
             return rawAmount;
         }
         
         // Convert human-readable USDC to raw format (6 decimals)
         function toRawUSDC(humanReadable) {
-            return toRawAmount(humanReadable, 6);
+            console.log('[OTC] Converting USDC to raw:', humanReadable);
+            const raw = toRawAmount(humanReadable, 6);
+            console.log('[OTC] USDC raw result:', raw.toString());
+            return raw;
         }
         
         // Show step
         function showStep(stepNumber) {
+            const stepId = typeof stepNumber === 'string' ? stepNumber : \`step\${stepNumber}\`;
+            console.log('[OTC] Showing step:', stepId);
             document.querySelectorAll('.step').forEach(step => {
                 step.classList.remove('active');
             });
-            const stepId = typeof stepNumber === 'string' ? stepNumber : \`step\${stepNumber}\`;
             document.getElementById(stepId).classList.add('active');
+            console.log('[OTC] ✓ Step shown:', stepId);
         }
         
         // Update amount display from slider (human-readable)
         function updateAmountDisplay() {
             const slider = document.getElementById('amount-slider');
             const percentage = parseInt(slider.value);
+            console.log('[OTC] Updating amount display:', { percentage, userBalance: userBalance?.toString() });
             
             if (!userBalance || userBalance === 0n) {
                 document.getElementById('amount-display').textContent = '0';
@@ -505,44 +578,85 @@ app.get("/", (c) => {
             const rawAmount = (userBalance * BigInt(percentage)) / 100n;
             const humanReadable = formatTokenAmount(rawAmount, tokenDecimals);
             document.getElementById('amount-display').textContent = humanReadable;
+            console.log('[OTC] Amount display updated:', humanReadable);
         }
         
-        // Create listing on smart contract
-        async function createListing(token, tokenAmount, usdcPrice) {
+        // Check token allowance for OverTheCounter contract
+        async function checkAllowance(tokenAddress, userAddress) {
+            console.log('[OTC] Checking allowance...', { tokenAddress, userAddress });
+            const RPC_URL = 'https://mainnet.base.org';
+            // ERC20 allowance(owner, spender) function selector
+            const ERC20_ALLOWANCE = '0xdd62ed3e';
+            const ownerPadded = userAddress.slice(2).padStart(64, '0');
+            const spenderPadded = CONTRACT_ADDRESS.slice(2).padStart(64, '0');
+            const data = ERC20_ALLOWANCE + ownerPadded + spenderPadded;
+            
+            try {
+                const response = await fetch(RPC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        jsonrpc: '2.0',
+                        method: 'eth_call',
+                        params: [{
+                            to: tokenAddress,
+                            data: data
+                        }, 'latest'],
+                        id: 1
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.error || !result.result) {
+                    console.log('[OTC] ⚠ Could not check allowance, assuming 0');
+                    return 0n;
+                }
+                
+                const allowance = BigInt(result.result);
+                console.log('[OTC] ✓ Current allowance:', allowance.toString());
+                return allowance;
+            } catch (error) {
+                console.log('[OTC] ⚠ Error checking allowance:', error);
+                return 0n;
+            }
+        }
+        
+        // Approve token spending for OverTheCounter contract
+        async function approveToken(tokenAddress, amount) {
+            console.log('[OTC] Approving token...', { tokenAddress, amount });
             const provider = await getEthereumProvider();
             
             if (!provider) {
                 throw new Error('No Ethereum provider found');
             }
             
-            // Request account access
             const accounts = await provider.request({ method: 'eth_requestAccounts' });
             const account = accounts[0];
             
-            // Encode createListing function call
-            const functionSelector = '0x' + '4f7b6db1'; // createListing(address,uint256,uint256)
-            const tokenPadded = token.slice(2).padStart(64, '0');
-            const tokenAmountPadded = BigInt(tokenAmount).toString(16).padStart(64, '0');
-            const usdcPricePadded = BigInt(usdcPrice).toString(16).padStart(64, '0');
+            // ERC20 approve(spender, amount) function selector
+            const ERC20_APPROVE = '0x095ea7b3';
+            const spenderPadded = CONTRACT_ADDRESS.slice(2).padStart(64, '0');
+            const amountPadded = BigInt(amount).toString(16).padStart(64, '0');
+            const data = ERC20_APPROVE + spenderPadded + amountPadded;
             
-            const data = functionSelector + tokenPadded + tokenAmountPadded + usdcPricePadded;
-            
-            // Prepare transaction
             const tx = {
-                to: CONTRACT_ADDRESS,
+                to: tokenAddress,
                 from: account,
                 data: data
             };
             
-            // Send transaction
+            console.log('[OTC] Sending approval transaction...');
             const txHash = await provider.request({
                 method: 'eth_sendTransaction',
                 params: [tx]
             });
+            console.log('[OTC] ✓ Approval transaction sent, hash:', txHash);
             
-            // Wait for transaction receipt
+            // Wait for approval transaction receipt
             let receipt = null;
-            while (!receipt) {
+            let attempts = 0;
+            while (!receipt && attempts < 30) {
+                attempts++;
                 try {
                     receipt = await provider.request({
                         method: 'eth_getTransactionReceipt',
@@ -556,25 +670,119 @@ app.get("/", (c) => {
                 }
             }
             
+            if (!receipt) {
+                throw new Error('Approval transaction timeout');
+            }
+            
+            console.log('[OTC] ✓ Approval confirmed');
+            return receipt;
+        }
+        
+        // Create listing on smart contract
+        async function createListing(token, tokenAmount, usdcPrice) {
+            console.log('[OTC] Creating listing...', { token, tokenAmount, usdcPrice });
+            const provider = await getEthereumProvider();
+            
+            if (!provider) {
+                console.error('[OTC] ✗ No provider for createListing');
+                throw new Error('No Ethereum provider found');
+            }
+            
+            // Request account access
+            const accounts = await provider.request({ method: 'eth_requestAccounts' });
+            const account = accounts[0];
+            console.log('[OTC] Using account for listing:', account);
+            
+            // Check if approval is needed
+            const currentAllowance = await checkAllowance(token, account);
+            const requiredAmount = BigInt(tokenAmount);
+            
+            if (currentAllowance < requiredAmount) {
+                console.log('[OTC] Insufficient allowance, requesting approval...');
+                console.log('[OTC] Current allowance:', currentAllowance.toString(), 'Required:', requiredAmount.toString());
+                await approveToken(token, tokenAmount);
+                console.log('[OTC] ✓ Approval completed, proceeding with createListing');
+            } else {
+                console.log('[OTC] ✓ Sufficient allowance already exists');
+            }
+            
+            // Encode createListing function call
+            // Function signature: createListing(address,uint256,uint256)
+            // Selector: first 4 bytes of keccak256("createListing(address,uint256,uint256)")
+            const functionSelector = '0x4f7b6db1';
+            const tokenPadded = token.slice(2).padStart(64, '0');
+            const tokenAmountPadded = BigInt(tokenAmount).toString(16).padStart(64, '0');
+            const usdcPricePadded = BigInt(usdcPrice).toString(16).padStart(64, '0');
+            
+            const data = functionSelector + tokenPadded + tokenAmountPadded + usdcPricePadded;
+            console.log('[OTC] Transaction data:', data);
+            console.log('[OTC] Function selector:', functionSelector);
+            console.log('[OTC] Token:', token, 'Amount:', tokenAmount, 'Price:', usdcPrice);
+            
+            // Prepare transaction
+            const tx = {
+                to: CONTRACT_ADDRESS,
+                from: account,
+                data: data
+            };
+            console.log('[OTC] Transaction object:', tx);
+            
+            // Send transaction
+            console.log('[OTC] Sending createListing transaction...');
+            const txHash = await provider.request({
+                method: 'eth_sendTransaction',
+                params: [tx]
+            });
+            console.log('[OTC] ✓ Transaction sent, hash:', txHash);
+            
+            // Wait for transaction receipt
+            console.log('[OTC] Waiting for transaction receipt...');
+            let receipt = null;
+            let attempts = 0;
+            while (!receipt) {
+                attempts++;
+                try {
+                    receipt = await provider.request({
+                        method: 'eth_getTransactionReceipt',
+                        params: [txHash]
+                    });
+                    if (!receipt) {
+                        console.log(\`[OTC] Receipt not ready yet (attempt \${attempts}), waiting...\`);
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    } else {
+                        console.log('[OTC] ✓ Transaction receipt received:', receipt);
+                    }
+                } catch (error) {
+                    console.log(\`[OTC] Error getting receipt (attempt \${attempts}):\`, error);
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+            
             // Extract listing ID from logs (simplified - would need proper log decoding)
-            return receipt.logs.length > 0 ? Date.now() : Date.now();
+            const listingId = receipt.logs.length > 0 ? Date.now() : Date.now();
+            console.log('[OTC] ✓ Listing created, ID:', listingId);
+            return listingId;
         }
         
         // Step 1: Handle contract address input
         document.getElementById('next-step1').addEventListener('click', async () => {
+            console.log('[OTC] Step 1: Next button clicked');
             const tokenInput = document.getElementById('token');
             const errorMessage = document.getElementById('error-message');
             const successMessage = document.getElementById('success-message');
             
             tokenAddress = tokenInput.value.trim();
+            console.log('[OTC] Token address input:', tokenAddress);
             
             if (!tokenAddress || !tokenAddress.startsWith('0x') || tokenAddress.length !== 42) {
+                console.error('[OTC] ✗ Invalid token address format');
                 errorMessage.textContent = 'Please enter a valid contract address';
                 errorMessage.style.display = 'block';
                 return;
             }
             
             try {
+                console.log('[OTC] Valid token address, proceeding...');
                 errorMessage.style.display = 'none';
                 successMessage.style.display = 'none';
                 
@@ -582,9 +790,11 @@ app.get("/", (c) => {
                 showStep(2);
                 
                 // Get user account
+                console.log('[OTC] Getting user account...');
                 const account = await getUserAccount();
                 
                 // Fetch balance and decimals
+                console.log('[OTC] Fetching balance and decimals in parallel...');
                 const [balance, decimals] = await Promise.all([
                     getTokenBalance(tokenAddress, account),
                     getTokenDecimals(tokenAddress)
@@ -592,20 +802,33 @@ app.get("/", (c) => {
                 
                 userBalance = balance;
                 tokenDecimals = decimals;
+                console.log('[OTC] Balance and decimals fetched:', { 
+                    balance: balance.toString(), 
+                    decimals,
+                    humanReadable: formatTokenAmount(balance, decimals)
+                });
                 
                 if (userBalance === 0n) {
+                    console.log('[OTC] User has zero balance, showing buy token step');
                     // Show no balance step with buy button
                     showStep('step2-no-balance');
                     return;
                 }
                 
                 // Show balance and slider step
-                document.getElementById('balance-display').textContent = formatTokenAmount(userBalance, tokenDecimals);
+                console.log('[OTC] User has balance, showing step 3');
+                const formattedBalance = formatTokenAmount(userBalance, tokenDecimals);
+                document.getElementById('balance-display').textContent = formattedBalance;
                 updateAmountDisplay(); // Initialize slider display
                 showStep(3);
                 
             } catch (error) {
-                console.error('Error fetching balance:', error);
+                console.error('[OTC] ✗ Error in step 1 flow:', error);
+                console.error('[OTC] Error details:', { 
+                    message: error.message, 
+                    stack: error.stack,
+                    tokenAddress 
+                });
                 errorMessage.textContent = \`Error: \${error.message}\`;
                 errorMessage.style.display = 'block';
                 showStep(1);
@@ -614,27 +837,45 @@ app.get("/", (c) => {
         
         // Handle buy token button (no balance step)
         document.getElementById('buy-token-button').addEventListener('click', async () => {
+            console.log('[OTC] Buy token button clicked');
+            console.log('[OTC] Token address for swap:', tokenAddress);
             try {
                 // USDC on Base: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
                 // Format: eip155:8453/erc20:{address}
-                await sdk.actions.swapToken({
+                const swapParams = {
                     sellToken: "eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
                     buyToken: \`eip155:8453/erc20:\${tokenAddress}\`,
                     sellAmount: "1000000", // 1 USDC (6 decimals)
-                });
+                };
+                console.log('[OTC] Swap parameters:', swapParams);
+                console.log('[OTC] Calling sdk.actions.swapToken...');
+                
+                await sdk.actions.swapToken(swapParams);
+                console.log('[OTC] ✓ Swap completed');
                 
                 // After swap, refresh balance
+                console.log('[OTC] Refreshing balance after swap...');
                 const account = await getUserAccount();
                 const balance = await getTokenBalance(tokenAddress, account);
                 userBalance = balance;
+                console.log('[OTC] New balance:', balance.toString());
                 
                 if (userBalance > 0n) {
-                    document.getElementById('balance-display').textContent = formatTokenAmount(userBalance, tokenDecimals);
+                    console.log('[OTC] Balance > 0, showing step 3');
+                    const formattedBalance = formatTokenAmount(userBalance, tokenDecimals);
+                    document.getElementById('balance-display').textContent = formattedBalance;
                     updateAmountDisplay();
                     showStep(3);
+                } else {
+                    console.log('[OTC] ⚠ Balance still 0 after swap');
                 }
             } catch (error) {
-                console.error('Error swapping token:', error);
+                console.error('[OTC] ✗ Error swapping token:', error);
+                console.error('[OTC] Swap error details:', { 
+                    message: error.message, 
+                    stack: error.stack,
+                    tokenAddress 
+                });
                 const errorMessage = document.getElementById('error-message');
                 errorMessage.textContent = \`Error: \${error.message}\`;
                 errorMessage.style.display = 'block';
@@ -643,27 +884,43 @@ app.get("/", (c) => {
         
         // Handle back button from no balance step
         document.getElementById('back-to-step1').addEventListener('click', () => {
+            console.log('[OTC] Back button clicked, returning to step 1');
             showStep(1);
         });
         
         // Step 3: Handle slider and move to price step
-        document.getElementById('amount-slider').addEventListener('input', updateAmountDisplay);
+        document.getElementById('amount-slider').addEventListener('input', () => {
+            console.log('[OTC] Slider value changed');
+            updateAmountDisplay();
+        });
+        
         document.getElementById('next-step3').addEventListener('click', () => {
+            console.log('[OTC] Step 3: Next button clicked');
             const slider = document.getElementById('amount-slider');
             const percentage = parseInt(slider.value);
+            console.log('[OTC] Slider percentage:', percentage);
             
             if (percentage === 0) {
+                console.error('[OTC] ✗ No amount selected');
                 const errorMessage = document.getElementById('error-message');
                 errorMessage.textContent = 'Please select an amount to sell';
                 errorMessage.style.display = 'block';
                 return;
             }
             
+            const rawAmount = (userBalance * BigInt(percentage)) / 100n;
+            console.log('[OTC] Amount to sell:', { 
+                percentage, 
+                rawAmount: rawAmount.toString(),
+                humanReadable: formatTokenAmount(rawAmount, tokenDecimals)
+            });
+            
             showStep(4);
         });
         
         // Handle form submission
         document.getElementById('create-listing-form').addEventListener('submit', async (e) => {
+            console.log('[OTC] Form submission started');
             e.preventDefault();
             
             const submitButton = document.getElementById('create-button');
@@ -673,6 +930,7 @@ app.get("/", (c) => {
             try {
                 submitButton.disabled = true;
                 submitButton.textContent = 'CREATING...';
+                console.log('[OTC] Submit button disabled');
                 
                 // Hide previous messages
                 successMessage.style.display = 'none';
@@ -682,13 +940,29 @@ app.get("/", (c) => {
                 const slider = document.getElementById('amount-slider');
                 const percentage = parseInt(slider.value);
                 
+                console.log('[OTC] Form data:', { 
+                    usdcPriceInput, 
+                    percentage,
+                    tokenAddress,
+                    userBalance: userBalance?.toString(),
+                    tokenDecimals
+                });
+                
                 // Convert human-readable inputs to raw format
                 const rawTokenAmount = (userBalance * BigInt(percentage)) / 100n;
                 const rawUSDCPrice = toRawUSDC(usdcPriceInput);
                 
+                console.log('[OTC] Converted amounts:', {
+                    rawTokenAmount: rawTokenAmount.toString(),
+                    rawUSDCPrice: rawUSDCPrice.toString(),
+                    humanReadableToken: formatTokenAmount(rawTokenAmount, tokenDecimals),
+                    humanReadableUSDC: (rawUSDCPrice / BigInt(10 ** 6)).toString()
+                });
+                
                 // Create listing with raw amounts
                 const listingId = await createListing(tokenAddress, rawTokenAmount.toString(), rawUSDCPrice.toString());
                 createdListingId = listingId;
+                console.log('[OTC] ✓ Listing created successfully, ID:', listingId);
                 
                 // Show success message
                 successMessage.textContent = \`Listing created successfully! ID: \${listingId}\`;
@@ -698,36 +972,58 @@ app.get("/", (c) => {
                 document.getElementById('share-section').style.display = 'block';
                 
                 // Reset form
+                console.log('[OTC] Resetting form and returning to step 1');
                 e.target.reset();
                 showStep(1);
                 
             } catch (error) {
-                console.error('Error creating listing:', error);
+                console.error('[OTC] ✗ Error creating listing:', error);
+                console.error('[OTC] Create listing error details:', { 
+                    message: error.message, 
+                    stack: error.stack,
+                    tokenAddress,
+                    userBalance: userBalance?.toString()
+                });
                 errorMessage.textContent = \`Error: \${error.message}\`;
                 errorMessage.style.display = 'block';
             } finally {
                 submitButton.disabled = false;
                 submitButton.textContent = 'CREATE LISTING';
+                console.log('[OTC] Submit button re-enabled');
             }
         });
         
         // Handle share button
         document.getElementById('share-button').addEventListener('click', async () => {
-            if (!createdListingId) return;
+            console.log('[OTC] Share button clicked, listing ID:', createdListingId);
+            if (!createdListingId) {
+                console.error('[OTC] ✗ No listing ID to share');
+                return;
+            }
             
             try {
                 const baseUrl = '${baseUrl}';
+                const shareUrl = \`\${baseUrl}/listing/\${createdListingId}\`;
+                console.log('[OTC] Sharing listing:', shareUrl);
+                
                 await sdk.actions.composeCast({
                     text: \`I'm selling tokens for USDC on OverTheCounter! 🚀\`,
-                    embeds: [\`\${baseUrl}/listing/\${createdListingId}\`]
+                    embeds: [shareUrl]
                 });
+                console.log('[OTC] ✓ Cast composed successfully');
             } catch (error) {
-                console.error('Error sharing listing:', error);
+                console.error('[OTC] ✗ Error sharing listing:', error);
+                console.error('[OTC] Share error details:', { 
+                    message: error.message, 
+                    stack: error.stack,
+                    listingId: createdListingId
+                });
                 alert('Error sharing listing: ' + error.message);
             }
         });
         
         // Initialize app
+        console.log('[OTC] Starting app initialization...');
         initializeApp();
     </script>
 </body>
@@ -737,21 +1033,21 @@ app.get("/", (c) => {
 
 // Listing detail page
 app.get("/listing/:id", async (c) => {
-  const listingId = c.req.param('id');
-  const baseUrl = process.env.BASE_URL || 'https://miniapp.anky.app';
-  
+  const listingId = c.req.param("id");
+  const baseUrl = process.env.BASE_URL || "https://miniapp.anky.app";
+
   // TODO: Fetch real listing data from database
   // For now, we'll use placeholder data
   const listing = {
     id: listingId,
-    seller: '0x1234...5678',
-    token: '0xABCD...EFGH',
-    tokenAmount: '1000000000000000000',
-    usdcPrice: '1000000',
+    seller: "0x1234...5678",
+    token: "0xABCD...EFGH",
+    tokenAmount: "1000000000000000000",
+    usdcPrice: "1000000",
     expiresAt: Date.now() + 86400000,
-    isActive: true
+    isActive: true,
   };
-  
+
   return c.html(`
 <!DOCTYPE html>
 <html lang="en">
@@ -934,21 +1230,27 @@ app.get("/listing/:id", async (c) => {
             </div>
             <div class="info-row">
                 <span class="label">Status:</span>
-                <span class="value ${listing.isActive ? 'status-active' : 'status-inactive'}">
-                    ${listing.isActive ? 'Active' : 'Inactive'}
+                <span class="value ${
+                  listing.isActive ? "status-active" : "status-inactive"
+                }">
+                    ${listing.isActive ? "Active" : "Inactive"}
                 </span>
             </div>
         </div>
         
-        ${listing.isActive ? `
+        ${
+          listing.isActive
+            ? `
         <button class="button" id="buy-button">
             BUY TOKENS
         </button>
-        ` : `
+        `
+            : `
         <button class="button" disabled>
             LISTING NOT AVAILABLE
         </button>
-        `}
+        `
+        }
         </div>
     </div>
 
@@ -956,57 +1258,74 @@ app.get("/listing/:id", async (c) => {
         import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
         
         // OverTheCounter contract details
-        const CONTRACT_ADDRESS = '${process.env.CONTRACT_ADDRESS || '0x...'}';
+        const CONTRACT_ADDRESS = '${process.env.CONTRACT_ADDRESS || "0x..."}';
         const LISTING_ID = '${listingId}';
+        
+        console.log('[OTC] Listing detail page script loaded');
+        console.log('[OTC] Listing ID:', LISTING_ID);
+        console.log('[OTC] Contract address:', CONTRACT_ADDRESS);
         
         // Initialize SDK when page loads
         async function initializeApp() {
+            console.log('[OTC] Initializing listing detail page...');
             try {
                 await sdk.actions.ready();
-                console.log('Farcaster SDK ready');
+                console.log('[OTC] ✓ Farcaster SDK ready');
             } catch (error) {
-                console.log('Not in Farcaster miniapp context:', error);
+                console.log('[OTC] ⚠ Not in Farcaster miniapp context:', error);
             }
         }
         
         // Get ethereum provider
         async function getEthereumProvider() {
+            console.log('[OTC] Getting Ethereum provider for listing page...');
             try {
-                return await sdk.wallet.getEthereumProvider();
+                const provider = await sdk.wallet.getEthereumProvider();
+                console.log('[OTC] ✓ Got provider from SDK:', !!provider);
+                return provider;
             } catch (error) {
-                console.log('Using window.ethereum fallback');
+                console.log('[OTC] ⚠ SDK provider failed, using window.ethereum fallback:', error);
+                console.log('[OTC] window.ethereum available:', !!window.ethereum);
                 return window.ethereum;
             }
         }
         
         // Execute listing (buy tokens)
         async function executeListing(listingId) {
+            console.log('[OTC] Executing listing purchase...', { listingId });
             const provider = await getEthereumProvider();
             
             if (!provider) {
+                console.error('[OTC] ✗ No provider for executeListing');
                 throw new Error('No Ethereum provider found');
             }
             
             // Request account access
+            console.log('[OTC] Requesting account access...');
             const accounts = await provider.request({ method: 'eth_requestAccounts' });
             const account = accounts[0];
+            console.log('[OTC] Using account:', account);
             
             // Prepare transaction for executeListing
             const functionSelector = '0x' + '06d05b54'; // executeListing function selector
             const listingIdPadded = BigInt(listingId).toString(16).padStart(64, '0');
             const data = functionSelector + listingIdPadded;
+            console.log('[OTC] Transaction data:', data);
             
             const tx = {
                 to: CONTRACT_ADDRESS,
                 from: account,
                 data: data
             };
+            console.log('[OTC] Transaction object:', tx);
             
             // Send transaction
+            console.log('[OTC] Sending executeListing transaction...');
             const txHash = await provider.request({
                 method: 'eth_sendTransaction',
                 params: [tx]
             });
+            console.log('[OTC] ✓ Transaction sent, hash:', txHash);
             
             return txHash;
         }
@@ -1014,19 +1333,24 @@ app.get("/listing/:id", async (c) => {
         // Handle buy button
         const buyButton = document.getElementById('buy-button');
         if (buyButton) {
+            console.log('[OTC] Buy button found, attaching event listener');
             buyButton.addEventListener('click', async () => {
+                console.log('[OTC] Buy button clicked');
                 const successMessage = document.getElementById('success-message');
                 const errorMessage = document.getElementById('error-message');
                 
                 try {
                     buyButton.disabled = true;
                     buyButton.textContent = 'BUYING...';
+                    console.log('[OTC] Buy button disabled');
                     
                     // Hide previous messages
                     successMessage.style.display = 'none';
                     errorMessage.style.display = 'none';
                     
+                    console.log('[OTC] Executing listing purchase...');
                     const txHash = await executeListing(LISTING_ID);
+                    console.log('[OTC] ✓ Purchase successful, tx hash:', txHash);
                     
                     // Show success message
                     successMessage.textContent = \`Purchase successful! Transaction: \${txHash}\`;
@@ -1035,17 +1359,26 @@ app.get("/listing/:id", async (c) => {
                     buyButton.textContent = 'PURCHASED!';
                     
                 } catch (error) {
-                    console.error('Error buying tokens:', error);
+                    console.error('[OTC] ✗ Error buying tokens:', error);
+                    console.error('[OTC] Buy error details:', { 
+                        message: error.message, 
+                        stack: error.stack,
+                        listingId: LISTING_ID
+                    });
                     errorMessage.textContent = \`Error: \${error.message}\`;
                     errorMessage.style.display = 'block';
                     
                     buyButton.disabled = false;
                     buyButton.textContent = 'BUY TOKENS';
+                    console.log('[OTC] Buy button re-enabled after error');
                 }
             });
+        } else {
+            console.log('[OTC] ⚠ Buy button not found on page');
         }
         
         // Initialize app
+        console.log('[OTC] Starting listing detail page initialization...');
         initializeApp();
     </script>
 </body>

@@ -3,10 +3,10 @@ import { createConfig } from "ponder";
 import { OverTheCounterAbi } from "./abis/OverTheCounterAbi";
 
 export default createConfig({
-  database: {
-    kind: "postgres",
-    connectionString: process.env.DATABASE_URL!,
-  },
+  // database: {
+  //   kind: "postgres",
+  //   connectionString: process.env.DATABASE_URL!,
+  // },
   chains: {
     base: {
       id: 8453,
