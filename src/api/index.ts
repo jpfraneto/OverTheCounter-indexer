@@ -347,8 +347,8 @@ app.get("/", (c) => {
                 <div class="step" id="step4">
                     <div class="form-group">
                         <label for="usdcPrice">USDC Price (total)</label>
-                        <input type="text" id="usdcPrice" name="usdcPrice" placeholder="1000000" required>
-                        <small style="font-size: 10px; color: #666; display: block; margin-top: 4px;">Price in USDC (6 decimals)</small>
+                        <input type="number" id="usdcPrice" name="usdcPrice" placeholder="10" step="0.01" min="0" required>
+                        <small style="font-size: 10px; color: #666; display: block; margin-top: 4px;">Enter price in USDC (e.g., 10 for 10 USDC)</small>
                     </div>
                     <button type="submit" class="button" id="create-button">
                         CREATE LISTING
@@ -456,20 +456,31 @@ app.get("/", (c) => {
             }
         }
         
-        // Format token amount for display
+        // Format token amount for display (human-readable, no decimals)
         function formatTokenAmount(amount, decimals = 18) {
             const divisor = BigInt(10 ** decimals);
-            const wholePart = amount / divisor;
-            const fractionalPart = amount % divisor;
+            const humanReadable = amount / divisor;
+            // Add commas for readability
+            return humanReadable.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');
+        }
+        
+        // Convert human-readable number to raw format (with decimals)
+        function toRawAmount(humanReadable, decimals) {
+            // Handle decimal input (e.g., "10.5" -> 10.5 * 10^decimals)
+            const parts = humanReadable.toString().split('.');
+            const wholePart = parts[0] || '0';
+            const fractionalPart = parts[1] || '';
             
-            if (fractionalPart === 0n) {
-                return wholePart.toString();
-            }
+            // Pad fractional part to match decimals, then combine
+            const paddedFractional = fractionalPart.padEnd(decimals, '0').slice(0, decimals);
+            const rawAmount = BigInt(wholePart) * BigInt(10 ** decimals) + BigInt(paddedFractional || '0');
             
-            const fractionalStr = fractionalPart.toString().padStart(decimals, '0');
-            const trimmedFractional = fractionalStr.replace(/0+$/, '');
-            
-            return trimmedFractional ? \`\${wholePart}.\${trimmedFractional}\` : wholePart.toString();
+            return rawAmount;
+        }
+        
+        // Convert human-readable USDC to raw format (6 decimals)
+        function toRawUSDC(humanReadable) {
+            return toRawAmount(humanReadable, 6);
         }
         
         // Show step
@@ -481,7 +492,7 @@ app.get("/", (c) => {
             document.getElementById(stepId).classList.add('active');
         }
         
-        // Update amount display from slider
+        // Update amount display from slider (human-readable)
         function updateAmountDisplay() {
             const slider = document.getElementById('amount-slider');
             const percentage = parseInt(slider.value);
@@ -491,8 +502,9 @@ app.get("/", (c) => {
                 return;
             }
             
-            const amount = (userBalance * BigInt(percentage)) / 100n;
-            document.getElementById('amount-display').textContent = formatTokenAmount(amount, tokenDecimals);
+            const rawAmount = (userBalance * BigInt(percentage)) / 100n;
+            const humanReadable = formatTokenAmount(rawAmount, tokenDecimals);
+            document.getElementById('amount-display').textContent = humanReadable;
         }
         
         // Create listing on smart contract
@@ -666,13 +678,16 @@ app.get("/", (c) => {
                 successMessage.style.display = 'none';
                 errorMessage.style.display = 'none';
                 
-                const usdcPrice = document.getElementById('usdcPrice').value;
+                const usdcPriceInput = document.getElementById('usdcPrice').value;
                 const slider = document.getElementById('amount-slider');
                 const percentage = parseInt(slider.value);
-                const tokenAmount = (userBalance * BigInt(percentage)) / 100n;
                 
-                // Create listing
-                const listingId = await createListing(tokenAddress, tokenAmount.toString(), usdcPrice);
+                // Convert human-readable inputs to raw format
+                const rawTokenAmount = (userBalance * BigInt(percentage)) / 100n;
+                const rawUSDCPrice = toRawUSDC(usdcPriceInput);
+                
+                // Create listing with raw amounts
+                const listingId = await createListing(tokenAddress, rawTokenAmount.toString(), rawUSDCPrice.toString());
                 createdListingId = listingId;
                 
                 // Show success message
