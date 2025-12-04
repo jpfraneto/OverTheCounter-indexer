@@ -80,106 +80,150 @@ app.get("/", (c) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OverTheCounter - Create Listing</title>
     <meta name="fc:miniapp" content='{"version":"1","imageUrl":"${baseUrl}/static/image.png","button":{"title":"Trade Tokens","action":{"type":"launch_miniapp","name":"OverTheCounter","url":"${baseUrl}","splashImageUrl":"${baseUrl}/static/icon.svg","splashBackgroundColor":"#1a1a1a"}}}' />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap">
     <script type="module" src="https://esm.sh/@farcaster/miniapp-sdk"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
             max-width: 400px;
             margin: 0 auto;
             padding: 20px;
-            background: #f5f5f5;
+            background: #008080;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
             min-height: 100vh;
         }
         .container {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: #c0c0c0;
+            border: 2px outset #c0c0c0;
+            padding: 8px;
+            box-shadow: 
+                inset -1px -1px 0px #000,
+                inset 1px 1px 0px #fff,
+                2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .window-title {
+            background: linear-gradient(to right, #000080, #1084d0);
+            color: white;
+            padding: 4px 8px;
+            font-weight: bold;
+            font-size: 11px;
+            margin: -8px -8px 8px -8px;
+            border-bottom: 1px solid #000;
+            display: flex;
+            align-items: center;
+            height: 20px;
+        }
+        .window-content {
+            background: #c0c0c0;
+            padding: 16px;
         }
         h1 {
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 24px;
+            color: #000;
+            margin: 0 0 8px 0;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
         }
         .subtitle {
-            color: #666;
-            margin-bottom: 24px;
-            font-size: 14px;
+            color: #000;
+            margin-bottom: 16px;
+            font-size: 12px;
         }
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
+            margin-bottom: 4px;
+            font-weight: bold;
+            color: #000;
+            font-size: 12px;
         }
         input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 4px;
+            border: 2px inset #c0c0c0;
+            background: #fff;
+            font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
+            font-size: 12px;
             box-sizing: border-box;
         }
         input:focus {
-            outline: none;
-            border-color: #0066cc;
+            outline: 1px dotted #000;
+            outline-offset: -2px;
         }
         .button {
             width: 100%;
-            padding: 16px;
-            background: #0066cc;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 8px 16px;
+            background: #c0c0c0;
+            color: #000;
+            border: 2px outset #c0c0c0;
+            font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
+            text-align: center;
+            box-shadow: 
+                inset -1px -1px 0px #000,
+                inset 1px 1px 0px #fff;
         }
-        .button:hover {
-            background: #0052a3;
+        .button:active {
+            border: 2px inset #c0c0c0;
+            box-shadow: 
+                inset 1px 1px 0px #000,
+                inset -1px -1px 0px #fff;
+        }
+        .button:hover:not(:disabled) {
+            background: #d4d0c8;
         }
         .button:disabled {
-            background: #ccc;
+            background: #c0c0c0;
+            color: #808080;
             cursor: not-allowed;
+            border: 2px inset #c0c0c0;
+            box-shadow: 
+                inset 1px 1px 0px #808080,
+                inset -1px -1px 0px #fff;
         }
         .share-button {
-            background: #1da1f2;
             margin-top: 12px;
         }
-        .share-button:hover {
-            background: #1a8cd8;
-        }
         .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: #c0c0c0;
+            color: #000;
+            padding: 12px;
+            border: 2px inset #c0c0c0;
+            margin-bottom: 16px;
             display: none;
+            font-size: 12px;
         }
         .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: #c0c0c0;
+            color: #000;
+            padding: 12px;
+            border: 2px inset #c0c0c0;
+            margin-bottom: 16px;
             display: none;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>OverTheCounter</h1>
-        <p class="subtitle">Create a new token listing</p>
-        
-        <div id="success-message" class="success-message"></div>
-        <div id="error-message" class="error-message"></div>
-        
-        <form id="create-listing-form">
+        <div class="window-title">OverTheCounter</div>
+        <div class="window-content">
+            <h1>OverTheCounter</h1>
+            <p class="subtitle">Create a new token listing</p>
+            
+            <div id="success-message" class="success-message"></div>
+            <div id="error-message" class="error-message"></div>
+            
+            <form id="create-listing-form">
             <div class="form-group">
                 <label for="token">Token Address</label>
                 <input type="text" id="token" name="token" placeholder="0x..." required>
@@ -204,6 +248,7 @@ app.get("/", (c) => {
             <button type="button" class="button share-button" id="share-button">
                 SHARE LISTING
             </button>
+        </div>
         </div>
     </div>
 
@@ -382,119 +427,162 @@ app.get("/listing/:id", async (c) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OverTheCounter - Listing #${listingId}</title>
     <meta name="fc:miniapp" content='{"version":"1","imageUrl":"${baseUrl}/static/image.png","button":{"title":"Buy Tokens","action":{"type":"launch_miniapp","name":"OverTheCounter","url":"${baseUrl}/listing/${listingId}","splashImageUrl":"${baseUrl}/static/icon.svg","splashBackgroundColor":"#1a1a1a"}}}' />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&display=swap">
     <script type="module" src="https://esm.sh/@farcaster/miniapp-sdk"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
             max-width: 400px;
             margin: 0 auto;
             padding: 20px;
-            background: #f5f5f5;
+            background: #008080;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
             min-height: 100vh;
         }
         .container {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: #c0c0c0;
+            border: 2px outset #c0c0c0;
+            padding: 8px;
+            box-shadow: 
+                inset -1px -1px 0px #000,
+                inset 1px 1px 0px #fff,
+                2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .window-title {
+            background: linear-gradient(to right, #000080, #1084d0);
+            color: white;
+            padding: 4px 8px;
+            font-weight: bold;
+            font-size: 11px;
+            margin: -8px -8px 8px -8px;
+            border-bottom: 1px solid #000;
+            display: flex;
+            align-items: center;
+            height: 20px;
+        }
+        .window-content {
+            background: #c0c0c0;
+            padding: 16px;
         }
         h1 {
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 24px;
+            color: #000;
+            margin: 0 0 8px 0;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
         }
         .listing-id {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 24px;
+            color: #000;
+            font-size: 12px;
+            margin-bottom: 16px;
         }
         .listing-info {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 24px;
+            background: #fff;
+            border: 2px inset #c0c0c0;
+            padding: 12px;
+            margin-bottom: 16px;
         }
         .info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
+            font-size: 12px;
         }
         .info-row:last-child {
             margin-bottom: 0;
         }
         .label {
-            font-weight: 600;
-            color: #333;
+            font-weight: bold;
+            color: #000;
         }
         .value {
-            color: #666;
+            color: #000;
             word-break: break-all;
         }
         .button {
             width: 100%;
-            padding: 16px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
+            padding: 8px 16px;
+            background: #c0c0c0;
+            color: #000;
+            border: 2px outset #c0c0c0;
+            font-family: 'Comic Neue', 'Comic Sans MS', cursive, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
+            text-align: center;
+            box-shadow: 
+                inset -1px -1px 0px #000,
+                inset 1px 1px 0px #fff;
         }
-        .button:hover {
-            background: #218838;
+        .button:active {
+            border: 2px inset #c0c0c0;
+            box-shadow: 
+                inset 1px 1px 0px #000,
+                inset -1px -1px 0px #fff;
+        }
+        .button:hover:not(:disabled) {
+            background: #d4d0c8;
         }
         .button:disabled {
-            background: #ccc;
+            background: #c0c0c0;
+            color: #808080;
             cursor: not-allowed;
+            border: 2px inset #c0c0c0;
+            box-shadow: 
+                inset 1px 1px 0px #808080,
+                inset -1px -1px 0px #fff;
         }
         .back-button {
-            background: #6c757d;
-            margin-bottom: 16px;
-        }
-        .back-button:hover {
-            background: #545b62;
+            margin-bottom: 12px;
         }
         .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: #c0c0c0;
+            color: #000;
+            padding: 12px;
+            border: 2px inset #c0c0c0;
+            margin-bottom: 16px;
             display: none;
+            font-size: 12px;
         }
         .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            background: #c0c0c0;
+            color: #000;
+            padding: 12px;
+            border: 2px inset #c0c0c0;
+            margin-bottom: 16px;
             display: none;
+            font-size: 12px;
         }
         .status-active {
-            color: #28a745;
-            font-weight: 600;
+            color: #000;
+            font-weight: bold;
         }
         .status-inactive {
-            color: #dc3545;
-            font-weight: 600;
+            color: #000;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <button onclick="window.location.href='/'" class="button back-button">
-            ← Back to Create
-        </button>
-        
-        <h1>Token Listing</h1>
-        <div class="listing-id">Listing #${listingId}</div>
-        
-        <div id="success-message" class="success-message"></div>
-        <div id="error-message" class="error-message"></div>
-        
-        <div class="listing-info">
+        <div class="window-title">Token Listing</div>
+        <div class="window-content">
+            <button onclick="window.location.href='/'" class="button back-button">
+                ← Back to Create
+            </button>
+            
+            <h1>Token Listing</h1>
+            <div class="listing-id">Listing #${listingId}</div>
+            
+            <div id="success-message" class="success-message"></div>
+            <div id="error-message" class="error-message"></div>
+            
+            <div class="listing-info">
             <div class="info-row">
                 <span class="label">Seller:</span>
                 <span class="value">${listing.seller}</span>
@@ -528,6 +616,7 @@ app.get("/listing/:id", async (c) => {
             LISTING NOT AVAILABLE
         </button>
         `}
+        </div>
     </div>
 
     <script type="module">
